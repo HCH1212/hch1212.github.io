@@ -1,0 +1,1015 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Tcp拥塞控制算法之bbr - giftiaのblog</title><meta name=theme-color><meta name=description content="一. 环境
+
+vmware虚拟机
+iso镜像：ubuntu-22.04.5-live-server-amd64.iso
+配置：2核4G
+
+二. 默认算法
+1. 查看当前的拥塞控制算法
+$ sysctl net.ipv4.tcp_congestion_control
+> net.ipv4.tcp_congestion_control = cubic
+可见，默认的算法是cubic
+2. cubic算法
+主要是通过丢包来调整窗口的的大小，控制传输速率
+a. 慢启动
+每收到一个ack，拥塞窗口（cwnd）就指数增长
+cwnd：1-2-4-8-16-32&mldr;
+b. 拥塞避免
+cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）
+W(t) = C × (t - K)³ + W_max
+c. 快重传
+收到三个重复ack，立即重传丢失的包，不等待超时
+d. 快恢复
+快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）
+三. 切换为bbr
+1. 查看当前支持的拥塞控制算法
+$ sysctl net.ipv4.tcp_available_congestion_control
+> net.ipv4.tcp_available_congestion_control = reno cubic
+发现并没有bbr，难道是不支持吗
+查看一下内核版本
+$ uname -r
+> 5.15.0-119-generic
+内核版本>4.9就支持bbr，所以需要我们手动加载bbr模块
+$ sudo modprobe tcp_bbr
+再次查看
+$ sysctl net.ipv4.tcp_available_congestion_control
+> net.ipv4.tcp_available_congestion_control = reno cubic bbr
+2. 切换为bbr算法
+我这里使用临时切换（重启后失效）"><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Tcp拥塞控制算法之bbr"><meta itemprop=description content="一. 环境 vmware虚拟机 iso镜像：ubuntu-22.04.5-live-server-amd64.iso 配置：2核4G 二. 默认算法 1. 查看当前的拥塞控制算法 $ sysctl net.ipv4.tcp_congestion_control > net.ipv4.tcp_congestion_control = cubic 可见，默认的算法是cubic
+2. cubic算法 主要是通过丢包来调整窗口的的大小，控制传输速率
+a. 慢启动
+每收到一个ack，拥塞窗口（cwnd）就指数增长
+cwnd：1-2-4-8-16-32…
+b. 拥塞避免
+cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）
+W(t) = C × (t - K)³ + W_max c. 快重传
+收到三个重复ack，立即重传丢失的包，不等待超时
+d. 快恢复
+快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）
+三. 切换为bbr 1. 查看当前支持的拥塞控制算法 $ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic 发现并没有bbr，难道是不支持吗
+查看一下内核版本
+$ uname -r > 5.15.0-119-generic 内核版本>4.9就支持bbr，所以需要我们手动加载bbr模块
+$ sudo modprobe tcp_bbr 再次查看
+$ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic bbr 2. 切换为bbr算法 我这里使用临时切换（重启后失效）"><meta itemprop=datePublished content="2026-01-03T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-03T12:04:28+00:00"><meta itemprop=wordCount content="3061"><meta itemprop=keywords content="技术"><meta property="og:url" content="https://hch1212.github.io/posts/2026/01/tcp%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8Bbbr/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Tcp拥塞控制算法之bbr"><meta property="og:description" content="一. 环境 vmware虚拟机 iso镜像：ubuntu-22.04.5-live-server-amd64.iso 配置：2核4G 二. 默认算法 1. 查看当前的拥塞控制算法 $ sysctl net.ipv4.tcp_congestion_control > net.ipv4.tcp_congestion_control = cubic 可见，默认的算法是cubic
+2. cubic算法 主要是通过丢包来调整窗口的的大小，控制传输速率
+a. 慢启动
+每收到一个ack，拥塞窗口（cwnd）就指数增长
+cwnd：1-2-4-8-16-32…
+b. 拥塞避免
+cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）
+W(t) = C × (t - K)³ + W_max c. 快重传
+收到三个重复ack，立即重传丢失的包，不等待超时
+d. 快恢复
+快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）
+三. 切换为bbr 1. 查看当前支持的拥塞控制算法 $ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic 发现并没有bbr，难道是不支持吗
+查看一下内核版本
+$ uname -r > 5.15.0-119-generic 内核版本>4.9就支持bbr，所以需要我们手动加载bbr模块
+$ sudo modprobe tcp_bbr 再次查看
+$ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic bbr 2. 切换为bbr算法 我这里使用临时切换（重启后失效）"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-01-03T00:00:00+00:00"><meta property="article:modified_time" content="2026-01-03T12:04:28+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Tcp拥塞控制算法之bbr"><meta name=twitter:description content="一. 环境 vmware虚拟机 iso镜像：ubuntu-22.04.5-live-server-amd64.iso 配置：2核4G 二. 默认算法 1. 查看当前的拥塞控制算法 $ sysctl net.ipv4.tcp_congestion_control > net.ipv4.tcp_congestion_control = cubic 可见，默认的算法是cubic
+2. cubic算法 主要是通过丢包来调整窗口的的大小，控制传输速率
+a. 慢启动
+每收到一个ack，拥塞窗口（cwnd）就指数增长
+cwnd：1-2-4-8-16-32…
+b. 拥塞避免
+cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）
+W(t) = C × (t - K)³ + W_max c. 快重传
+收到三个重复ack，立即重传丢失的包，不等待超时
+d. 快恢复
+快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）
+三. 切换为bbr 1. 查看当前支持的拥塞控制算法 $ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic 发现并没有bbr，难道是不支持吗
+查看一下内核版本
+$ uname -r > 5.15.0-119-generic 内核版本>4.9就支持bbr，所以需要我们手动加载bbr模块
+$ sudo modprobe tcp_bbr 再次查看
+$ sysctl net.ipv4.tcp_available_congestion_control > net.ipv4.tcp_available_congestion_control = reno cubic bbr 2. 切换为bbr算法 我这里使用临时切换（重启后失效）"><link rel=canonical href=https://hch1212.github.io/posts/2026/01/tcp%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8Bbbr/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Tcp拥塞控制算法之bbr</h1><div class="text-xs antialiased opacity-60"><time>Jan 3, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><h2 id=一-环境>一. 环境</h2><ol><li>vmware虚拟机</li><li>iso镜像：ubuntu-22.04.5-live-server-amd64.iso</li><li>配置：2核4G</li></ol><h2 id=二-默认算法>二. 默认算法</h2><h3 id=1-查看当前的拥塞控制算法>1. 查看当前的拥塞控制算法</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sysctl net.ipv4.tcp_congestion_control
+</span></span><span class=line><span class=cl>&gt; net.ipv4.tcp_congestion_control <span class=o>=</span> cubic
+</span></span></code></pre></div><p>可见，默认的算法是cubic</p><h3 id=2-cubic算法>2. cubic算法</h3><p>主要是通过丢包来调整窗口的的大小，控制传输速率</p><p>a. 慢启动</p><p>每收到一个ack，拥塞窗口（cwnd）就指数增长</p><p>cwnd：1-2-4-8-16-32&mldr;</p><p>b. 拥塞避免</p><p>cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>W(t) = C × (t - K)³ + W_max
+</span></span></code></pre></div><p>c. 快重传</p><p>收到三个重复ack，立即重传丢失的包，不等待超时</p><p>d. 快恢复</p><p>快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）</p><h2 id=三-切换为bbr>三. 切换为bbr</h2><h3 id=1-查看当前支持的拥塞控制算法>1. 查看当前支持的拥塞控制算法</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sysctl net.ipv4.tcp_available_congestion_control
+</span></span><span class=line><span class=cl>&gt; net.ipv4.tcp_available_congestion_control <span class=o>=</span> reno cubic
+</span></span></code></pre></div><p>发现并没有bbr，难道是不支持吗</p><p>查看一下内核版本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ uname -r
+</span></span><span class=line><span class=cl>&gt; 5.15.0-119-generic
+</span></span></code></pre></div><p>内核版本>4.9就支持bbr，所以需要我们手动加载bbr模块</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo modprobe tcp_bbr
+</span></span></code></pre></div><p>再次查看</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sysctl net.ipv4.tcp_available_congestion_control
+</span></span><span class=line><span class=cl>&gt; net.ipv4.tcp_available_congestion_control <span class=o>=</span> reno cubic bbr
+</span></span></code></pre></div><h3 id=2-切换为bbr算法>2. 切换为bbr算法</h3><p>我这里使用临时切换（重启后失效）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo sysctl -w net.core.default_qdisc<span class=o>=</span>fq
+</span></span><span class=line><span class=cl>$ sudo sysctl -w net.ipv4.tcp_congestion_control<span class=o>=</span>bbr
+</span></span><span class=line><span class=cl>&gt; net.core.default_qdisc <span class=o>=</span> fq
+</span></span><span class=line><span class=cl>&gt; net.ipv4.tcp_congestion_control <span class=o>=</span> bbr
+</span></span></code></pre></div><p>再检查一下是否切换</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sysctl net.ipv4.tcp_congestion_control
+</span></span><span class=line><span class=cl>&gt; net.ipv4.tcp_congestion_control <span class=o>=</span> bbr
+</span></span></code></pre></div><h2 id=四-bbr>四. bbr</h2><p>bbr不同于传统的拥塞控制算法，它并不是通过丢包来判断是否需要改动窗口，而是会主动去测量网络状况</p><h3 id=1-两个指标>1. 两个指标</h3><p>BtlBw (Bottleneck Bandwidth)- 瓶颈带宽</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>发送数据包 → 测量实际传输速率 → 记录最大值
+</span></span></code></pre></div><p>RTprop (Round-trip propagation time)- 最小往返时延</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>发送数据包 → 测量往返时间 → 记录最小值
+</span></span></code></pre></div><h2 id=2-计算最优发送速率>2. 计算最优发送速率</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>最优发送窗口 = BtlBw × RTprop
+</span></span></code></pre></div><p>这就是带宽延迟积（BDP），是理论上的最佳值</p><h3 id=3-不同的四个阶段>3. 不同的四个阶段</h3><p><img src=/other/bbr.png alt=img></p><h3 id=4-对比>4. 对比</h3><p>通俗的说，以开车为示例</p><p>a. cubic</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>踩油门 → 撞墙(丢包) → 急刹车 → 再踩油门 → 又撞墙
+</span></span></code></pre></div><p>b. bbr</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>看速度表和路况 → 保持在限速以下 → 偶尔试探一下能不能更快
+</span></span></code></pre></div><h2 id=五-性能对比>五. 性能对比</h2><p>两台虚拟机，分别是发起方和接受方（后面叫做服务器 客户端）</p><h3 id=1-服务端配置>1. 服务端配置</h3><p>1.1 安装iperf3</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo apt update
+</span></span><span class=line><span class=cl>$ sudo apt install -y iperf3
+</span></span></code></pre></div><p>1.2 启动iperf3服务器（保持启动）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span><span class=line><span class=cl>&gt; 
+</span></span><span class=line><span class=cl>-----------------------------------------------------------
+</span></span><span class=line><span class=cl>Server listening on <span class=m>5201</span>
+</span></span><span class=line><span class=cl>-----------------------------------------------------------
+</span></span></code></pre></div><p>1.3 查看服务器ip</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ ip addr
+</span></span><span class=line><span class=cl>&gt; 192.168.226.130
+</span></span></code></pre></div><h3 id=2-客户端配置>2. 客户端配置</h3><p>2.1 安装工具</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo apt update
+</span></span><span class=line><span class=cl>$ sudo apt install -y iperf3
+</span></span></code></pre></div><p>2.2 测试连通性</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ ping 192.168.226.130 -c <span class=m>4</span>
+</span></span><span class=line><span class=cl>&gt; 
+</span></span><span class=line><span class=cl>PING 192.168.226.130 <span class=o>(</span>192.168.226.130<span class=o>)</span> 56<span class=o>(</span>84<span class=o>)</span> bytes of data.
+</span></span><span class=line><span class=cl><span class=m>64</span> bytes from 192.168.226.130: <span class=nv>icmp_seq</span><span class=o>=</span><span class=m>1</span> <span class=nv>ttl</span><span class=o>=</span><span class=m>64</span> <span class=nv>time</span><span class=o>=</span>0.512 ms
+</span></span><span class=line><span class=cl><span class=m>64</span> bytes from 192.168.226.130: <span class=nv>icmp_seq</span><span class=o>=</span><span class=m>2</span> <span class=nv>ttl</span><span class=o>=</span><span class=m>64</span> <span class=nv>time</span><span class=o>=</span>0.295 ms
+</span></span><span class=line><span class=cl><span class=m>64</span> bytes from 192.168.226.130: <span class=nv>icmp_seq</span><span class=o>=</span><span class=m>3</span> <span class=nv>ttl</span><span class=o>=</span><span class=m>64</span> <span class=nv>time</span><span class=o>=</span>0.250 ms
+</span></span><span class=line><span class=cl><span class=m>64</span> bytes from 192.168.226.130: <span class=nv>icmp_seq</span><span class=o>=</span><span class=m>4</span> <span class=nv>ttl</span><span class=o>=</span><span class=m>64</span> <span class=nv>time</span><span class=o>=</span>0.317 ms
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>--- 192.168.226.130 ping statistics ---
+</span></span><span class=line><span class=cl><span class=m>4</span> packets transmitted, <span class=m>4</span> received, 0% packet loss, <span class=nb>time</span> 3074ms
+</span></span><span class=line><span class=cl>rtt min/avg/max/mdev <span class=o>=</span> 0.250/0.343/0.512/0.100 ms
+</span></span></code></pre></div><h3 id=3-创建测试脚本>3. 创建测试脚本</h3><p>3.1 创建文件（vim可替换为自己熟悉的）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ vim bbr_test.sh
+</span></span></code></pre></div><p>3.2 粘贴脚本（ai写的，可根据需求灵活更改）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># ========================================</span>
+</span></span><span class=line><span class=cl><span class=c1># CUBIC vs BBR 性能对比测试脚本</span>
+</span></span><span class=line><span class=cl><span class=c1># ========================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 配置参数</span>
+</span></span><span class=line><span class=cl><span class=nv>SERVER_IP</span><span class=o>=</span><span class=s2>&#34;192.168.226.130&#34;</span>  <span class=c1># ⚠️ 修改为你的服务器IP</span>
+</span></span><span class=line><span class=cl><span class=nv>TEST_DURATION</span><span class=o>=</span><span class=m>30</span>            <span class=c1># 每次测试持续时间（秒）</span>
+</span></span><span class=line><span class=cl><span class=nv>TEST_ROUNDS</span><span class=o>=</span><span class=m>3</span>               <span class=c1># 每个算法测试次数</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 颜色定义</span>
+</span></span><span class=line><span class=cl><span class=nv>RED</span><span class=o>=</span><span class=s1>&#39;\033[0;31m&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>GREEN</span><span class=o>=</span><span class=s1>&#39;\033[0;32m&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>YELLOW</span><span class=o>=</span><span class=s1>&#39;\033[1;33m&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>BLUE</span><span class=o>=</span><span class=s1>&#39;\033[0;34m&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>NC</span><span class=o>=</span><span class=s1>&#39;\033[0m&#39;</span> <span class=c1># No Color</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 结果目录</span>
+</span></span><span class=line><span class=cl><span class=nv>RESULT_DIR</span><span class=o>=</span><span class=s2>&#34;test_results_</span><span class=k>$(</span>date +%Y%m%d_%H%M%S<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>mkdir -p <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>================================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>       CUBIC vs BBR 性能对比测试</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>================================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;服务器地址: </span><span class=nv>$SERVER_IP</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;测试时长: </span><span class=si>${</span><span class=nv>TEST_DURATION</span><span class=si>}</span><span class=s2>秒&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;测试轮数: </span><span class=si>${</span><span class=nv>TEST_ROUNDS</span><span class=si>}</span><span class=s2>次&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;结果目录: </span><span class=nv>$RESULT_DIR</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 检查服务器连通性</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>YELLOW</span><span class=si>}</span><span class=s2>检查服务器连通性...</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! ping -c <span class=m>2</span> <span class=nv>$SERVER_IP</span> &gt;/dev/null 2&gt;<span class=p>&amp;</span>1<span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>RED</span><span class=si>}</span><span class=s2>错误: 无法连接到服务器 </span><span class=nv>$SERVER_IP</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>✓ 服务器连通正常</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 检查BBR模块</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>YELLOW</span><span class=si>}</span><span class=s2>检查BBR模块...</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! lsmod <span class=p>|</span> grep -q tcp_bbr<span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;加载BBR模块...&#34;</span>
+</span></span><span class=line><span class=cl>    sudo modprobe tcp_bbr
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>✓ BBR模块已加载</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 函数：执行单次测试</span>
+</span></span><span class=line><span class=cl>run_single_test<span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>algo</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>round</span><span class=o>=</span><span class=nv>$2</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>output_file</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/</span><span class=si>${</span><span class=nv>algo</span><span class=si>}</span><span class=s2>_round</span><span class=si>${</span><span class=nv>round</span><span class=si>}</span><span class=s2>.txt&#34;</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>BLUE</span><span class=si>}</span><span class=s2>► [</span><span class=nv>$algo</span><span class=s2>] 第 </span><span class=nv>$round</span><span class=s2> 轮测试中...</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 切换算法</span>
+</span></span><span class=line><span class=cl>    sudo sysctl -w net.ipv4.tcp_congestion_control<span class=o>=</span><span class=nv>$algo</span> &gt;/dev/null 2&gt;<span class=p>&amp;</span><span class=m>1</span>
+</span></span><span class=line><span class=cl>    sleep <span class=m>1</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 运行iperf3测试</span>
+</span></span><span class=line><span class=cl>    iperf3 -c <span class=nv>$SERVER_IP</span> -t <span class=nv>$TEST_DURATION</span> -C <span class=nv>$algo</span> &gt; <span class=s2>&#34;</span><span class=nv>$output_file</span><span class=s2>&#34;</span> 2&gt;<span class=p>&amp;</span><span class=m>1</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 提取关键数据</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>bandwidth</span><span class=o>=</span><span class=k>$(</span>grep <span class=s2>&#34;receiver&#34;</span> <span class=s2>&#34;</span><span class=nv>$output_file</span><span class=s2>&#34;</span> <span class=p>|</span> awk <span class=s1>&#39;{print $(NF-2), $(NF-1)}&#39;</span><span class=k>)</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>retrans</span><span class=o>=</span><span class=k>$(</span>grep <span class=s2>&#34;sender&#34;</span> <span class=s2>&#34;</span><span class=nv>$output_file</span><span class=s2>&#34;</span> <span class=p>|</span> awk <span class=s1>&#39;{print $(NF-1)}&#39;</span><span class=k>)</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>retrans</span><span class=o>=</span><span class=si>${</span><span class=nv>retrans</span><span class=k>:-</span><span class=nv>0</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;  带宽: </span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=nv>$bandwidth</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;  重传: </span><span class=si>${</span><span class=nv>YELLOW</span><span class=si>}${</span><span class=nv>retrans</span><span class=si>}${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 保存到汇总文件</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;</span><span class=nv>$algo</span><span class=s2>,</span><span class=nv>$round</span><span class=s2>,</span><span class=nv>$bandwidth</span><span class=s2>,</span><span class=nv>$retrans</span><span class=s2>&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/raw_data.csv&#34;</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    sleep <span class=m>3</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 函数：测试指定算法</span>
+</span></span><span class=line><span class=cl>test_algorithm<span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=nb>local</span> <span class=nv>algo</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>========================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>  测试算法: </span><span class=nv>$algo</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>========================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>for</span> i in <span class=k>$(</span>seq <span class=m>1</span> <span class=nv>$TEST_ROUNDS</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>        run_single_test <span class=nv>$algo</span> <span class=nv>$i</span>
+</span></span><span class=line><span class=cl>    <span class=k>done</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 初始化CSV文件</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;算法,轮次,带宽,单位,重传次数&#34;</span> &gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/raw_data.csv&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 开始测试</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>YELLOW</span><span class=si>}</span><span class=s2>开始测试...</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 测试CUBIC</span>
+</span></span><span class=line><span class=cl>test_algorithm <span class=s2>&#34;cubic&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 测试BBR</span>
+</span></span><span class=line><span class=cl>test_algorithm <span class=s2>&#34;bbr&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 生成测试报告</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>================================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>            测试完成！</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>================================================</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 计算平均值</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>BLUE</span><span class=si>}</span><span class=s2>正在生成报告...</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cat &gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span> <span class=s>&lt;&lt; EOF
+</span></span></span><span class=line><span class=cl><span class=s>===== CUBIC vs BBR 性能对比报告 =====
+</span></span></span><span class=line><span class=cl><span class=s>测试时间: $(date)
+</span></span></span><span class=line><span class=cl><span class=s>服务器: $SERVER_IP
+</span></span></span><span class=line><span class=cl><span class=s>测试时长: ${TEST_DURATION}秒/轮
+</span></span></span><span class=line><span class=cl><span class=s>测试轮数: ${TEST_ROUNDS}轮
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>----- CUBIC 测试结果 -----
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>grep <span class=s2>&#34;cubic&#34;</span> <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/raw_data.csv&#34;</span> <span class=p>|</span> <span class=k>while</span> <span class=nv>IFS</span><span class=o>=</span><span class=s1>&#39;,&#39;</span> <span class=nb>read</span> algo round bw unit retrans<span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;  第</span><span class=si>${</span><span class=nv>round</span><span class=si>}</span><span class=s2>轮: </span><span class=si>${</span><span class=nv>bw</span><span class=si>}</span><span class=s2> </span><span class=si>${</span><span class=nv>unit</span><span class=si>}</span><span class=s2>, 重传: </span><span class=si>${</span><span class=nv>retrans</span><span class=si>}</span><span class=s2>&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>cat &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span> <span class=s>&lt;&lt; EOF
+</span></span></span><span class=line><span class=cl><span class=s>
+</span></span></span><span class=line><span class=cl><span class=s>----- BBR 测试结果 -----
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>grep <span class=s2>&#34;bbr&#34;</span> <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/raw_data.csv&#34;</span> <span class=p>|</span> <span class=k>while</span> <span class=nv>IFS</span><span class=o>=</span><span class=s1>&#39;,&#39;</span> <span class=nb>read</span> algo round bw unit retrans<span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;  第</span><span class=si>${</span><span class=nv>round</span><span class=si>}</span><span class=s2>轮: </span><span class=si>${</span><span class=nv>bw</span><span class=si>}</span><span class=s2> </span><span class=si>${</span><span class=nv>unit</span><span class=si>}</span><span class=s2>, 重传: </span><span class=si>${</span><span class=nv>retrans</span><span class=si>}</span><span class=s2>&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;详细数据请查看: </span><span class=nv>$RESULT_DIR</span><span class=s2>/&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 显示报告</span>
+</span></span><span class=line><span class=cl>cat <span class=s2>&#34;</span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>GREEN</span><span class=si>}</span><span class=s2>✓ 所有测试结果已保存到: </span><span class=nv>$RESULT_DIR</span><span class=s2>/</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>YELLOW</span><span class=si>}</span><span class=s2>查看详细数据:</span><span class=si>${</span><span class=nv>NC</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;  cat </span><span class=nv>$RESULT_DIR</span><span class=s2>/summary.txt&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;  cat </span><span class=nv>$RESULT_DIR</span><span class=s2>/raw_data.csv&#34;</span>
+</span></span></code></pre></div><p>3.3 添加执行权限</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ chmod +x bbr_test.sh
+</span></span></code></pre></div><h3 id=4-执行第一轮测试>4. 执行第一轮测试</h3><p>4.1 运行脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>4.2 测试输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>-e <span class=o>================================================</span>
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e <span class=o>================================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_090605
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e <span class=o>========================================</span>
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e <span class=o>========================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>cubic<span class=o>]</span> 第 <span class=m>1</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 8.20 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>559</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>cubic<span class=o>]</span> 第 <span class=m>2</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 7.48 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>296</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>cubic<span class=o>]</span> 第 <span class=m>3</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 7.21 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>294</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e <span class=o>========================================</span>
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e <span class=o>========================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>bbr<span class=o>]</span> 第 <span class=m>1</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 3.51 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>bbr<span class=o>]</span> 第 <span class=m>2</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 3.35 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► <span class=o>[</span>bbr<span class=o>]</span> 第 <span class=m>3</span> 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 3.31 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: <span class=m>0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e <span class=o>================================================</span>
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e <span class=o>================================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl><span class=o>=====</span> CUBIC vs BBR <span class=nv>性能对比报告</span> <span class=o>=====</span>
+</span></span><span class=line><span class=cl>测试时间: Fri Oct <span class=m>31</span> 09:09:31 AM UTC <span class=m>2025</span>
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 8.20 Gbits/sec 559, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.48 Gbits/sec 296, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.21 Gbits/sec 294, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 3.51 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 3.35 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 3.31 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_090605/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_090605/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_090605/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_090605/raw_data.csv
+</span></span></code></pre></div><p>4.3 结果分析</p><p>这里我测试了多次，就不粘贴上来了（后续结果都是如此）</p><p>除了个别测试，差别都不大，可见cubic的带宽明显优于bbr，但是bbr不会丢包且较稳定</p><p>第一轮可以算cubic胜利，但是注意现在是内网环境，并启没有配置延迟和丢包率</p><p>接下来我们继续测试</p><h3 id=5-第二轮测试高延迟>5. 第二轮测试（高延迟）</h3><p>5.1 服务端配置：150ms + 0.5%丢包</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem delay 150ms loss 0.5%
+</span></span></code></pre></div><p>5.2 验证是否生效</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc show dev ens33
+</span></span><span class=line><span class=cl>&gt; qdisc netem 8001: root refcnt <span class=m>2</span> limit <span class=m>1000</span> delay 150ms loss 0.5%
+</span></span></code></pre></div><p>5.3 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>5.4 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>5.5 结果输出（这里的重传次数不对，一开始脚本写错了，请自己再测试一下）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_070346
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 150 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 151 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 151 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 151 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 151 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 149 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl>===== CUBIC vs BBR 性能对比报告 =====
+</span></span><span class=line><span class=cl>测试时间: Fri Oct 31 07:07:22 AM UTC 2025
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 150 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 151 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 151 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 151 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 151 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 149 Mbits/sec , 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_070346/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_070346/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_070346/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_070346/raw_data.csv
+</span></span></code></pre></div><p>5.6 结果分析</p><p>cubic和bbr都稳定在150左右的带宽，这是一个奇怪的数据，首先想到的就是带宽达到了一个上限，所以我们需要找到原因并调整上限</p><p>5.7 查找原因</p><p>检查虚拟机带宽上限（不是这个原因）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ ethtool ens33 <span class=p>|</span> grep -i speed
+</span></span><span class=line><span class=cl>&gt; Speed: 1000Mb/s
+</span></span></code></pre></div><p>检查tcp缓冲区配置（原因就在这里）</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;当前配置:&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;  rmem_max: </span><span class=k>$(</span>sysctl -n net.core.rmem_max <span class=p>|</span> numfmt --to<span class=o>=</span>iec<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;  wmem_max: </span><span class=k>$(</span>sysctl -n net.core.wmem_max <span class=p>|</span> numfmt --to<span class=o>=</span>iec<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>sysctl net.ipv4.tcp_rmem
+</span></span><span class=line><span class=cl>sysctl net.ipv4.tcp_wmem
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;150ms延迟下达到1Gbps需要:&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;  BDP = 1 Gbps × 0.3s = 37.5 MB&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=k>$(</span>sysctl -n net.core.rmem_max<span class=k>)</span> -lt <span class=m>37500000</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;⚠️  缓冲区不足！这就是被限制在150Mbps的原因&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;✓ 缓冲区足够&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></div><p>问题分析</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>当前TCP缓冲区上限:
+</span></span><span class=line><span class=cl>  rmem_max: 208 KB  (接收)
+</span></span><span class=line><span class=cl>  wmem_max: 208 KB  (发送)
+</span></span><span class=line><span class=cl>  tcp_rmem最大: 6 MB
+</span></span><span class=line><span class=cl>  tcp_wmem最大: 4 MB
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>实际限制:
+</span></span><span class=line><span class=cl>  rmem_max和wmem_max是硬上限！
+</span></span><span class=line><span class=cl>  即使tcp_rmem设置了6MB，也会被208KB限制住
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>在150ms延迟下:
+</span></span><span class=line><span class=cl>  需要: 37.5 MB
+</span></span><span class=line><span class=cl>  实际: 6 MB (被208KB限制后可能更小)
+</span></span><span class=line><span class=cl>  理论带宽 = 6 MB / 0.3s ≈ 20 MB/s = 160 Mbps
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>这就是150 Mbps瓶颈
+</span></span></code></pre></div><p>5.8 优化两台虚拟机的tcp缓存区上限</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># ============================================</span>
+</span></span><span class=line><span class=cl><span class=c1># TCP缓冲区优化（临时生效）</span>
+</span></span><span class=line><span class=cl><span class=c1># ============================================</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;优化TCP缓冲区...&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 1. 增大缓冲区硬上限到64MB</span>
+</span></span><span class=line><span class=cl>sudo sysctl -w net.core.rmem_max<span class=o>=</span><span class=m>67108864</span>
+</span></span><span class=line><span class=cl>sudo sysctl -w net.core.wmem_max<span class=o>=</span><span class=m>67108864</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 2. 增大TCP缓冲区到64MB</span>
+</span></span><span class=line><span class=cl>sudo sysctl -w net.ipv4.tcp_rmem<span class=o>=</span><span class=s2>&#34;4096 131072 67108864&#34;</span>
+</span></span><span class=line><span class=cl>sudo sysctl -w net.ipv4.tcp_wmem<span class=o>=</span><span class=s2>&#34;4096 65536 67108864&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 3. 确保窗口缩放启用</span>
+</span></span><span class=line><span class=cl>sudo sysctl -w net.ipv4.tcp_window_scaling<span class=o>=</span><span class=m>1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 4. 验证配置</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;=== 优化后的配置 ===&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;接收缓冲最大值: </span><span class=k>$(</span>sysctl -n net.core.rmem_max <span class=p>|</span> numfmt --to<span class=o>=</span>iec<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;发送缓冲最大值: </span><span class=k>$(</span>sysctl -n net.core.wmem_max <span class=p>|</span> numfmt --to<span class=o>=</span>iec<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>sysctl net.ipv4.tcp_rmem
+</span></span><span class=line><span class=cl>sysctl net.ipv4.tcp_wmem
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;✓ 优化完成！现在缓冲区支持高延迟下的高速传输&#34;</span>
+</span></span></code></pre></div><p>5.9 重启服务端iperf3</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ killall iperf3
+</span></span><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>5.9 客户端再次运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>5.10 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_091141
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 563 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 14632
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 333 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 1090
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 374 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 2544
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 866 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 737 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 758 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl>===== CUBIC vs BBR 性能对比报告 =====
+</span></span><span class=line><span class=cl>测试时间: Fri Oct 31 09:15:16 AM UTC 2025
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 563 Mbits/sec 14632, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 333 Mbits/sec 1090, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 374 Mbits/sec 2544, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 866 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 737 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 758 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_091141/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_091141/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_091141/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_091141/raw_data.csv
+</span></span></code></pre></div><p>5.11 结果分析</p><p>现在结果就很明显了，高延迟下bbr完胜</p><p>在高延迟网络下，bbr不仅稳定无丢包，而且带宽也接近cubic的两倍</p><h3 id=6-第三轮测试高丢包>6. 第三轮测试（高丢包）</h3><p>6.1 服务端配置：50ms延迟 + 20ms抖动 + 3%丢包</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root <span class=c1># 先删除现有规则</span>
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem delay 50ms 20ms loss 3%
+</span></span></code></pre></div><p>6.2 验证是否生效</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc show dev ens33
+</span></span><span class=line><span class=cl>&gt; qdisc netem 8002: root refcnt <span class=m>2</span> limit <span class=m>1000</span> delay 50ms  20ms loss 3%
+</span></span></code></pre></div><p>6.3 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>6.4 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>6.5 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_094524
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.16 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 5196
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.23 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 21015
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.45 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 4591
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 342 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 240 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 354 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl>===== CUBIC vs BBR 性能对比报告 =====
+</span></span><span class=line><span class=cl>测试时间: Fri Oct 31 09:48:53 AM UTC 2025
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 1.16 Gbits/sec 5196, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 1.23 Gbits/sec 21015, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 1.45 Gbits/sec 4591, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 342 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 240 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 354 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_094524/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_094524/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_094524/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_094524/raw_data.csv
+</span></span></code></pre></div><p>6.7 结果分析</p><p>bbr虽然没有重传，但是带宽却比cubic低很多</p><p>是不是感觉又有点奇怪，再来找找原因</p><p><em>了解bbr原理便能分析出原因：20ms抖动对bbr影响大，去掉20ms抖动试试</em></p><p>6.8 服务器重新配置并启动：50ms延迟 + 3%丢包</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem delay 50ms loss 3%
+</span></span><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>6.9 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>6.10 脚本输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_100113
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.04 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 1877
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.05 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 2788
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 1.71 Gbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 6424
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 893 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 1172
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 948 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 867 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl>===== CUBIC vs BBR 性能对比报告 =====
+</span></span><span class=line><span class=cl>测试时间: Fri Oct 31 10:04:42 AM UTC 2025
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 1.04 Gbits/sec 1877, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 1.05 Gbits/sec 2788, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 1.71 Gbits/sec 6424, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 893 Mbits/sec 1172, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 948 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 867 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_100113/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_100113/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_100113/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_100113/raw_data.csv
+</span></span></code></pre></div><p>6.11 结果分析</p><p>去掉抖动后bbr带宽翻倍并启非常稳定，丢包也很少</p><p>但是cubic带宽略胜一筹，所以说cubic比较激进</p><p>记住一句话：<strong>延迟抖动是BBR的克星！</strong></p><h3 id=7-第四轮测试高延迟高丢包带宽限制>7. 第四轮测试（高延迟+高丢包+带宽限制）</h3><p>7.1 服务端配置：100ms延迟 + 5%丢包 + 限制带宽到100Mbps</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem delay 100ms loss 5% rate 100mbit
+</span></span></code></pre></div><p>7.2 验证是否生效</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc show dev ens33
+</span></span><span class=line><span class=cl>&gt; qdisc netem 8006: root refcnt <span class=m>2</span> limit <span class=m>1000</span> delay 100ms loss 5% rate 100Mbit
+</span></span></code></pre></div><p>7.3 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>7.4 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>7.5 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e        CUBIC vs BBR 性能对比测试
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>服务器地址: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒
+</span></span><span class=line><span class=cl>测试轮数: 3次
+</span></span><span class=line><span class=cl>结果目录: test_results_20251031_101021
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查服务器连通性...
+</span></span><span class=line><span class=cl>-e ✓ 服务器连通正常
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 检查BBR模块...
+</span></span><span class=line><span class=cl>-e ✓ BBR模块已加载
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 开始测试...
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: cubic
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 731 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 27864
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 518 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 9024
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [cubic] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 461 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 693
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>-e   测试算法: bbr
+</span></span><span class=line><span class=cl>-e ========================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 1 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 681 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 1
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 2 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 643 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ► [bbr] 第 3 轮测试中...
+</span></span><span class=line><span class=cl>-e   带宽: 649 Mbits/sec
+</span></span><span class=line><span class=cl>-e   重传: 0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>-e             测试完成！
+</span></span><span class=line><span class=cl>-e ================================================
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 正在生成报告...
+</span></span><span class=line><span class=cl>===== CUBIC vs BBR 性能对比报告 =====
+</span></span><span class=line><span class=cl>测试时间: Fri Oct 31 10:13:56 AM UTC 2025
+</span></span><span class=line><span class=cl>服务器: 192.168.226.130
+</span></span><span class=line><span class=cl>测试时长: 30秒/轮
+</span></span><span class=line><span class=cl>测试轮数: 3轮
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 731 Mbits/sec 27864, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 518 Mbits/sec 9024, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 461 Mbits/sec 693, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 681 Mbits/sec 1, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 643 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 649 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>详细数据请查看: test_results_20251031_101021/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e ✓ 所有测试结果已保存到: test_results_20251031_101021/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-e 查看详细数据:
+</span></span><span class=line><span class=cl>  cat test_results_20251031_101021/summary.txt
+</span></span><span class=line><span class=cl>  cat test_results_20251031_101021/raw_data.csv
+</span></span></code></pre></div><p>7.6 分析结果</p><p>完美体现了bbr的优势，稳定性十分惊人，丢包基本对bbr没有影响</p><h3 id=8-第五轮测试丢包率渐增的对比这里就不详细写相信大家已经熟悉测试流程了>8. 第五轮测试（丢包率渐增的对比）(这里就不详细写，相信大家已经熟悉测试流程了)</h3><p>8.1 服务端配置：丢包3% 5% 7% 10% 15%&mldr;</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem loss 3% <span class=c1># 5% 7% 10% 15%...</span>
+</span></span></code></pre></div><p>8.2 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>8.3 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>8.4 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>%3:
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 7.48 Gbits/sec 589, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.48 Gbits/sec 388, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.40 Gbits/sec 354, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 3.40 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 3.62 Gbits/sec 1, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 3.04 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%5:
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 7.58 Gbits/sec 403, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.52 Gbits/sec 391, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.56 Gbits/sec 432, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 3.38 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 3.47 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 3.47 Gbits/sec 1, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%7:
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 7.24 Gbits/sec 506, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.78 Gbits/sec 350, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.55 Gbits/sec 501, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 3.02 Gbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 3.08 Gbits/sec 1, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 3.12 Gbits/sec 1, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%10:
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 7.47 Gbits/sec 441, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.78 Gbits/sec 523, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.42 Gbits/sec 446, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 2.90 Gbits/sec 1, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 2.62 Gbits/sec 2, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 2.60 Gbits/sec 3, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%15:
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 7.46 Gbits/sec 361, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 7.50 Gbits/sec 420, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 7.86 Gbits/sec 414, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 2.65 Gbits/sec 3, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 2.54 Gbits/sec 5, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 2.64 Gbits/sec 0, 重传:
+</span></span></code></pre></div><p>8.5 分析结果</p><p>低延迟环境下，丢包率不是关键因素</p><p>CUBIC保持2倍以上优势，且随丢包率增加优势扩大</p><h3 id=9-第六轮测试延迟渐增的对比>9. 第六轮测试（延迟渐增的对比）</h3><p>9.1 服务端配置：延迟50ms 100ms 150ms 200ms 300ms&mldr;</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem delay 50ms
+</span></span></code></pre></div><p>9.2 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>9.3 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>9.4 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>50ms 
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 1.10 Gbits/sec 50, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 823 Mbits/sec 3178, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 893 Mbits/sec 1466, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 589 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 805 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 676 Mbits/sec 0, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>100ms 
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 785 Mbits/sec 3490, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 799 Mbits/sec 2170, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 490 Mbits/sec 1238, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 684 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 817 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 738 Mbits/sec 0, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>150ms 
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 469 Mbits/sec 2650, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 690 Mbits/sec 8, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 417 Mbits/sec 758, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 575 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 586 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 528 Mbits/sec 0, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>200ms 
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 274 Mbits/sec 3070, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 358 Mbits/sec 1752, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 396 Mbits/sec 16993, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 872 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 863 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 849 Mbits/sec 0, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>300ms
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 336 Mbits/sec 7019, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 362 Mbits/sec 729, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 166 Mbits/sec 5207, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 608 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 656 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 597 Mbits/sec 0, 重传:
+</span></span></code></pre></div><p>9.5 分析结果</p><p>延迟是决定性因素</p><p>- ≤80ms: CUBIC胜</p><p>- >80ms: BBR完胜</p><p>- ≥200ms: BBR优势达到2.5倍，CUBIC接近崩溃</p><h3 id=10-第七轮测试互联网延迟下丢包率渐增的对比>10. 第七轮测试（互联网延迟下丢包率渐增的对比）</h3><p>10.1 服务端配置：丢包3% 7% 15%&mldr; 延迟 50ms</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo tc qdisc del dev ens33 root
+</span></span><span class=line><span class=cl>$ sudo tc qdisc add dev ens33 root netem loss 3% delay 50ms
+</span></span></code></pre></div><p>10.2 启动服务端监听</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ iperf3 -s
+</span></span></code></pre></div><p>10.3 客户端运行测试脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sh ./bbr_test.sh
+</span></span></code></pre></div><p>10.4 结果输出</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>%3
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 1.28 Gbits/sec 2131, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 1.03 Gbits/sec 1148, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 990 Mbits/sec 2791, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 826 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 917 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 830 Mbits/sec 0, 重传:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%7
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 883 Mbits/sec 5279, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 1.23 Gbits/sec 1297, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 1.12 Gbits/sec 1780, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 848 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 817 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 859 Mbits/sec 2082, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>%15
+</span></span><span class=line><span class=cl>----- CUBIC 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 821 Mbits/sec 1674, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 734 Mbits/sec 2454, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 708 Mbits/sec 1567, 重传: 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>----- BBR 测试结果 -----
+</span></span><span class=line><span class=cl>  第1轮: 781 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第2轮: 827 Mbits/sec 0, 重传: 
+</span></span><span class=line><span class=cl>  第3轮: 818 Mbits/sec 1, 重传:
+</span></span></code></pre></div><p>10.5 分析结果</p><p>50ms延迟环境下，15%是CUBIC的崩溃点</p><p>- ≤7%丢包: CUBIC快28%，但不稳定</p><p>- 15%丢包: BBR逆转，快7%且极稳定</p><p>- 实际应用: BBR体验更好（稳定+低重传）</p><h2 id=六-总结>六. 总结</h2><ol><li>cubic</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>优势：
+</span></span><span class=line><span class=cl>✓ 低延迟环境性能优异（可达8 Gbps+）
+</span></span><span class=line><span class=cl>✓ 激进策略，充分利用带宽
+</span></span><span class=line><span class=cl>✓ 实现简单，计算开销小
+</span></span><span class=line><span class=cl>✓ 在理想网络中是王者
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>劣势：
+</span></span><span class=line><span class=cl>✗ 高延迟环境性能急剧下降（可低至&lt;300 Mbps）
+</span></span><span class=line><span class=cl>✗ 依赖丢包信号，反应滞后
+</span></span><span class=line><span class=cl>✗ 稳定性差，波动大（±15-35%）
+</span></span><span class=line><span class=cl>✗ 高延迟+高丢包时接近崩溃
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>适用场景：
+</span></span><span class=line><span class=cl>- 数据中心内部通信（&lt;5ms）
+</span></span><span class=line><span class=cl>- 局域网文件传输
+</span></span><span class=line><span class=cl>- 同城CDN节点
+</span></span></code></pre></div><ol start=2><li>bbr</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-plain data-lang=plain><span class=line><span class=cl>优势：
+</span></span><span class=line><span class=cl>✓ 高延迟环境性能卓越（200ms下仍可达800+ Mbps）
+</span></span><span class=line><span class=cl>✓ 极致稳定性（波动±1-5%）
+</span></span><span class=line><span class=cl>✓ 重传极少（通常为0）
+</span></span><span class=line><span class=cl>✓ 主动测量，不依赖丢包
+</span></span><span class=line><span class=cl>✓ 在复杂网络中是王者
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>劣势：
+</span></span><span class=line><span class=cl>✗ 低延迟环境自我限制（约3-4 Gbps）
+</span></span><span class=line><span class=cl>✗ 对RTT抖动敏感（±20ms会导致性能腰斩）
+</span></span><span class=line><span class=cl>✗ 实现复杂度高
+</span></span><span class=line><span class=cl>✗ 在局域网中&#34;浪费&#34;性能
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>适用场景：
+</span></span><span class=line><span class=cl>- 跨国网络通信（&gt;100ms）
+</span></span><span class=line><span class=cl>- 移动/卫星网络
+</span></span><span class=line><span class=cl>- 视频会议/直播
+</span></span><span class=line><span class=cl>- 需要稳定性的应用
+</span></span></code></pre></div><h2 id=ps>ps</h2><p>本文主要记录自己对bbr的探索和测试，对于cubic和bbr的原理讲解非常皮毛，希望大家自己找文章详细了解</p></section><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
