@@ -1,0 +1,252 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Hugo部署博客 - giftiaのblog</title><meta name=theme-color><meta name=description content="前置条件
+
+安装hugo
+有github
+
+步骤
+
+初始化（博客主题可替换）
+
+hugo new site quickstart
+cd quickstart
+git init
+git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
+echo &#34;theme = 'ananke'&#34; >> hugo.toml
+hugo server
+
+新文章
+
+hugo new content/posts/my-first-post.md
+
+运行（-D包含草稿）
+
+hugo server -D
+
+部署
+
+可以参考我的github，实现自动发布，giftia_blog是博客主题，hch1212.github.io是./public文件夹（展示主体）
+部署yaml文件参考
+name: 发布Hugo网站到Pages（跨仓库）
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤1：检出源码仓库（giftia_blog）的代码（含主题子模块）
+      - name: 检出Hugo源码
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      # 步骤2：安装指定版本 Hugo 0.154.1
+      - name: 安装Hugo 0.154.1
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.154.1'
+          # extended: true  # 需SCSS/SASS支持时取消注释
+
+      # 步骤3：构建Hugo产物（生成public目录）
+      - name: 构建Hugo网站
+        run: hugo --minify
+
+      # 步骤4：跨仓库部署到 hch1212.github.io 仓库（已修正参数名）
+      - name: 部署到Pages仓库
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # 关键修正：参数名改为 personal_token（对应 v4 版本要求）
+          personal_token: ${{ secrets.TOKEN }}
+          # 保持你的 Pages 仓库地址不变
+          external_repository: HCH1212/hch1212.github.io
+          # 部署到 Pages 仓库的 main 分支不变
+          publish_branch: main
+          # Hugo 构建产物目录不变
+          publish_dir: ./public
+          # 部署提交信息不变
+          commit_message: &#34;Deploy from giftia_blog: ${{ github.sha }}&#34;
+
+其他
+
+配置文件参考："><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Hugo部署博客"><meta itemprop=description content="前置条件 安装hugo 有github 步骤 初始化（博客主题可替换） hugo new site quickstart cd quickstart git init git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke echo &#34;theme = 'ananke'&#34; >> hugo.toml hugo server 新文章 hugo new content/posts/my-first-post.md 运行（-D包含草稿） hugo server -D 部署 可以参考我的github，实现自动发布，giftia_blog是博客主题，hch1212.github.io是./public文件夹（展示主体）
+部署yaml文件参考
+name: 发布Hugo网站到Pages（跨仓库） on: push: branches: [main] jobs: build-and-deploy: runs-on: ubuntu-latest steps: # 步骤1：检出源码仓库（giftia_blog）的代码（含主题子模块） - name: 检出Hugo源码 uses: actions/checkout@v4 with: submodules: true fetch-depth: 0 # 步骤2：安装指定版本 Hugo 0.154.1 - name: 安装Hugo 0.154.1 uses: peaceiris/actions-hugo@v2 with: hugo-version: '0.154.1' # extended: true # 需SCSS/SASS支持时取消注释 # 步骤3：构建Hugo产物（生成public目录） - name: 构建Hugo网站 run: hugo --minify # 步骤4：跨仓库部署到 hch1212.github.io 仓库（已修正参数名） - name: 部署到Pages仓库 uses: peaceiris/actions-gh-pages@v4 with: # 关键修正：参数名改为 personal_token（对应 v4 版本要求） personal_token: ${{ secrets.TOKEN }} # 保持你的 Pages 仓库地址不变 external_repository: HCH1212/hch1212.github.io # 部署到 Pages 仓库的 main 分支不变 publish_branch: main # Hugo 构建产物目录不变 publish_dir: ./public # 部署提交信息不变 commit_message: &#34;Deploy from giftia_blog: ${{ github.sha }}&#34; 其他 配置文件参考："><meta itemprop=datePublished content="2026-01-03T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-03T07:23:18+00:00"><meta itemprop=wordCount content="374"><meta itemprop=keywords content="未分类"><meta property="og:url" content="https://hch1212.github.io/posts/2026/01/hugo%E9%83%A8%E7%BD%B2%E5%8D%9A%E5%AE%A2/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Hugo部署博客"><meta property="og:description" content="前置条件 安装hugo 有github 步骤 初始化（博客主题可替换） hugo new site quickstart cd quickstart git init git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke echo &#34;theme = 'ananke'&#34; >> hugo.toml hugo server 新文章 hugo new content/posts/my-first-post.md 运行（-D包含草稿） hugo server -D 部署 可以参考我的github，实现自动发布，giftia_blog是博客主题，hch1212.github.io是./public文件夹（展示主体）
+部署yaml文件参考
+name: 发布Hugo网站到Pages（跨仓库） on: push: branches: [main] jobs: build-and-deploy: runs-on: ubuntu-latest steps: # 步骤1：检出源码仓库（giftia_blog）的代码（含主题子模块） - name: 检出Hugo源码 uses: actions/checkout@v4 with: submodules: true fetch-depth: 0 # 步骤2：安装指定版本 Hugo 0.154.1 - name: 安装Hugo 0.154.1 uses: peaceiris/actions-hugo@v2 with: hugo-version: '0.154.1' # extended: true # 需SCSS/SASS支持时取消注释 # 步骤3：构建Hugo产物（生成public目录） - name: 构建Hugo网站 run: hugo --minify # 步骤4：跨仓库部署到 hch1212.github.io 仓库（已修正参数名） - name: 部署到Pages仓库 uses: peaceiris/actions-gh-pages@v4 with: # 关键修正：参数名改为 personal_token（对应 v4 版本要求） personal_token: ${{ secrets.TOKEN }} # 保持你的 Pages 仓库地址不变 external_repository: HCH1212/hch1212.github.io # 部署到 Pages 仓库的 main 分支不变 publish_branch: main # Hugo 构建产物目录不变 publish_dir: ./public # 部署提交信息不变 commit_message: &#34;Deploy from giftia_blog: ${{ github.sha }}&#34; 其他 配置文件参考："><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-01-03T00:00:00+00:00"><meta property="article:modified_time" content="2026-01-03T07:23:18+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Hugo部署博客"><meta name=twitter:description content="前置条件 安装hugo 有github 步骤 初始化（博客主题可替换） hugo new site quickstart cd quickstart git init git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke echo &#34;theme = 'ananke'&#34; >> hugo.toml hugo server 新文章 hugo new content/posts/my-first-post.md 运行（-D包含草稿） hugo server -D 部署 可以参考我的github，实现自动发布，giftia_blog是博客主题，hch1212.github.io是./public文件夹（展示主体）
+部署yaml文件参考
+name: 发布Hugo网站到Pages（跨仓库） on: push: branches: [main] jobs: build-and-deploy: runs-on: ubuntu-latest steps: # 步骤1：检出源码仓库（giftia_blog）的代码（含主题子模块） - name: 检出Hugo源码 uses: actions/checkout@v4 with: submodules: true fetch-depth: 0 # 步骤2：安装指定版本 Hugo 0.154.1 - name: 安装Hugo 0.154.1 uses: peaceiris/actions-hugo@v2 with: hugo-version: '0.154.1' # extended: true # 需SCSS/SASS支持时取消注释 # 步骤3：构建Hugo产物（生成public目录） - name: 构建Hugo网站 run: hugo --minify # 步骤4：跨仓库部署到 hch1212.github.io 仓库（已修正参数名） - name: 部署到Pages仓库 uses: peaceiris/actions-gh-pages@v4 with: # 关键修正：参数名改为 personal_token（对应 v4 版本要求） personal_token: ${{ secrets.TOKEN }} # 保持你的 Pages 仓库地址不变 external_repository: HCH1212/hch1212.github.io # 部署到 Pages 仓库的 main 分支不变 publish_branch: main # Hugo 构建产物目录不变 publish_dir: ./public # 部署提交信息不变 commit_message: &#34;Deploy from giftia_blog: ${{ github.sha }}&#34; 其他 配置文件参考："><link rel=canonical href=https://hch1212.github.io/posts/2026/01/hugo%E9%83%A8%E7%BD%B2%E5%8D%9A%E5%AE%A2/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Hugo部署博客</h1><div class="text-xs antialiased opacity-60"><time>Jan 3, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><h2 id=前置条件>前置条件</h2><ul><li>安装hugo</li><li>有github</li></ul><h2 id=步骤>步骤</h2><ol><li>初始化（博客主题可替换）</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>hugo new site quickstart
+</span></span><span class=line><span class=cl><span class=nb>cd</span> quickstart
+</span></span><span class=line><span class=cl>git init
+</span></span><span class=line><span class=cl>git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;theme = &#39;ananke&#39;&#34;</span> &gt;&gt; hugo.toml
+</span></span><span class=line><span class=cl>hugo server
+</span></span></code></pre></div><ol start=2><li>新文章</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>hugo new content/posts/my-first-post.md
+</span></span></code></pre></div><ol start=3><li>运行（-D包含草稿）</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>hugo server -D
+</span></span></code></pre></div><ol start=4><li>部署</li></ol><p>可以参考我的github，实现自动发布，giftia_blog是博客主题，hch1212.github.io是./public文件夹（展示主体）</p><p>部署yaml文件参考</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>发布Hugo网站到Pages（跨仓库）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>build-and-deploy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># 步骤1：检出源码仓库（giftia_blog）的代码（含主题子模块）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>检出Hugo源码</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>submodules</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>fetch-depth</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># 步骤2：安装指定版本 Hugo 0.154.1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>安装Hugo 0.154.1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>peaceiris/actions-hugo@v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>hugo-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;0.154.1&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># extended: true  # 需SCSS/SASS支持时取消注释</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># 步骤3：构建Hugo产物（生成public目录）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>构建Hugo网站</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>hugo --minify</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># 步骤4：跨仓库部署到 hch1212.github.io 仓库（已修正参数名）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>部署到Pages仓库</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>peaceiris/actions-gh-pages@v4</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># 关键修正：参数名改为 personal_token（对应 v4 版本要求）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>personal_token</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.TOKEN }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># 保持你的 Pages 仓库地址不变</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>external_repository</span><span class=p>:</span><span class=w> </span><span class=l>HCH1212/hch1212.github.io</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># 部署到 Pages 仓库的 main 分支不变</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>publish_branch</span><span class=p>:</span><span class=w> </span><span class=l>main</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># Hugo 构建产物目录不变</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>publish_dir</span><span class=p>:</span><span class=w> </span><span class=l>./public</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># 部署提交信息不变</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>commit_message</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Deploy from giftia_blog: ${{ github.sha }}&#34;</span><span class=w>
+</span></span></span></code></pre></div><ol start=5><li>其他</li></ol><p>配置文件参考：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 基础配置</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>baseURL</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;https://hch1212.github.io/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>languageCode</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;zh-CN&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>title</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;giftiaのblog&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>theme</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;paper&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 核心功能</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>enableInlineShortcodes</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>ignoreErrors</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;error-remote-getjson&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>enableGitInfo</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>  </span><span class=c># 配合 lastmod 使用</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 自动日期更新逻辑 (解决 lastmod 不更新)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>frontmatter</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>lastmod</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;:fileModTime&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;lastmod&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;:git&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;date&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>date</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;date&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;publishDate&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;lastmod&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 分页与 URL</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>pagination</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pagerSize</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>permalinks</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>posts</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/posts/:year/:month/:slug/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 主题参数（Paper 专用）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>params</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 风格：linen / wheat / gray / light</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>color</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;linen&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 个人信息</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>avatar</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;https://hch1212.github.io/images/giftia.png&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;giftia&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>bio</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;大切な人といつかまた巡り会えますように。&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 社交媒体</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>github</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;hch1212&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>rss</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 功能开关</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>disableHLJS</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>            </span><span class=c># 代码高亮</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>disablePostNavigation</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>   </span><span class=c># 上/下一篇文章导航</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>monoDarkIcon</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>            </span><span class=c># 暗色模式下单色图标</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>showSummary</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>             </span><span class=c># 首页显示摘要</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 数学公式</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>math</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>localKatex</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>             </span><span class=c># 使用 CDN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 静态资源</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>gravatarCdn</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;https://cdn.v2ex.com/gravatar/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>favicon</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;favicon.ico&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>appleTouchIcon</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;apple-touch-icon.png&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>direction</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;ltr&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c># 评论</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>giscus</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>repo</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;HCH1212/giftia_blog&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>repoId</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;R_kgDOQycHqg&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>category</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Announcements&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>categoryId</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;DIC_kwDOQycHqs4C0hEV&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>mapping</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;pathname&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>strict</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>reactionsEnabled</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>emitMetadata</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>inputPosition</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;bottom&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>theme</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;preferred_color_scheme&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lang</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;zh-CN&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>loading</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;lazy&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># Markdown 渲染</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>markup</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>goldmark</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>renderer</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>unsafe</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w> </span><span class=c># 允许 Markdown 中使用 HTML</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>highlight</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>noClasses</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 顶部导航菜单</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>menu</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>main</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>identifier</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;loves&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Loves&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/loves/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>weight</span><span class=p>:</span><span class=w> </span><span class=m>30</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>identifier</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;links&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Links&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/links/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>weight</span><span class=p>:</span><span class=w> </span><span class=m>20</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>identifier</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;archives&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Archives&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/archives/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>weight</span><span class=p>:</span><span class=w> </span><span class=m>10</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>identifier</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;gallery&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Gallery&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/gallery/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>weight</span><span class=p>:</span><span class=w> </span><span class=m>40</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>identifier</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;about&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;About&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/about/&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>weight</span><span class=p>:</span><span class=w> </span><span class=m>50</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># 分类系统</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c># ===============================</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>taxonomies</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>category</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;categories&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>tag</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;tags&#34;</span><span class=w>
+</span></span></span></code></pre></div><p>主题的其他设置可以查看相关主题的文档</p></section><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
