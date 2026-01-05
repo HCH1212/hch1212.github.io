@@ -1,0 +1,301 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>rpc & kitex - giftiaのblog</title><meta name=theme-color><meta name=description content='什么是RPC
+RPC（Remote Procedure Call Protocol）即远程过程调用协议。
+通俗描述：客户端无需了解底层实现细节，即可像调用本地函数一样调用远程服务器上的服务。
+正式定义：一种通过网络透明地请求远程服务的协议，屏蔽了网络通信的复杂性。
+RPC的核心优势
+
+底层抽象：封装网络通信细节（如连接管理、数据传输），专注业务逻辑开发。
+跨语言兼容：支持多语言混合开发（如Go客户端调用Java服务端）。
+高性能通信：通过二进制协议（如Protobuf）和高效传输层（如HTTP/2），性能优于传统RESTful接口。
+
+RPC 的实现方式对比
+
+  
+      
+          实现方式
+          典型框架
+          核心特点
+          适用场景
+      
+  
+  
+      
+          基于 Socket
+          Thrift、Dubbo
+          手动控制序列化与网络层，性能极高但开发复杂
+          高性能场景（如金融、IM）
+      
+      
+          基于 HTTP
+          gRPC、RESTful
+          利用HTTP生态，gRPC基于HTTP/2+Protobuf实现高性能
+          通用场景、跨语言交互
+      
+      
+          基于消息队列
+          Apache Kafka、RabbitMQ
+          异步解耦，通过消息传递实现非阻塞调用（严格意义属异步通信而非RPC）
+          高并发、最终一致性场景
+      
+  
+
+gRPC 简介
+gRPC 是 Google 开源的高性能 RPC 框架，核心特性包括：
+
+HTTP/2 底层：支持多路复用、流模式（单向/双向）。
+Protobuf 序列化：数据压缩率高、反序列化速度快。
+多语言支持：原生支持Go、Java、Python等主流语言。
+
+Kitex 是什么
+Kitex 是字节跳动开源的 Go 微服务 RPC 框架，专为云原生场景设计：
+
+高性能：基于自研Netpoll网络库，QPS可达百万级，延迟低于1ms。
+全链路治理：内置服务发现（支持ETCD/Consul）、负载均衡、熔断限流。
+灵活扩展：通过插件机制支持自定义协议、中间件（如链路追踪、监控）。
+多协议兼容：原生支持Thrift/Protobuf，兼容gRPC协议。
+
+Kitex 快速入门
+1. 环境准备
+# 安装 Kitex 命令行工具
+go get -u github.com/cloudwego/kitex/cmd/kitex@latest
+2. 定义服务接口（Protobuf示例）
+// hello.proto
+syntax = "proto3";
+package hello;
+
+service Hello {
+  rpc SayHello(Request) returns (Response) {} // 定义远程方法
+}
+
+message Request {
+  string name = 1; // 请求参数
+}
+
+message Response {
+  string message = 1; // 响应结果
+}
+3. 生成代码
+kitex -name hello -proto ./hello.proto -dst ./kitex_gen # 生成服务代码
+4. 编写服务端
+// server/main.go
+package main
+
+import (
+	"context"
+	"log"
+	"net"
+
+	"kitex_gen/hello"        // 自动生成的代码包
+	"kitex_gen/hello/helloimpl" // 服务实现包
+)
+
+// 实现服务接口
+type HelloServiceImpl struct{}
+func (s *HelloServiceImpl) SayHello(ctx context.Context, req *hello.Request) (*hello.Response, error) {
+	return &amp;hello.Response{Message: "Hello " + req.Name}, nil
+}
+
+func main() {
+	// 初始化服务端，指定地址和处理器
+	svr := hello.NewHelloServer(
+		&amp;helloimpl.HelloServiceImpl{},
+		hello.WithServiceAddr(net.JoinHostPort("127.0.0.1", "8888")), // 绑定地址
+	)
+	
+	// 启动服务
+	if err := svr.Run(); err != nil {
+		log.Fatalf("Server exited with error: %v", err)
+	}
+}
+5. 编写客户端
+// client/main.go
+package main
+
+import (
+	"context"
+	"log"
+
+	"kitex_gen/hello" // 自动生成的代码包
+)
+
+func main() {
+	// 初始化客户端，指定服务名和地址
+	cli, err := hello.NewHelloClient(
+		"hello-service", // 服务名（需与服务端一致）
+		hello.WithHostPorts("127.0.0.1:8888"), // 目标地址
+	)
+	if err != nil {
+		log.Fatalf("Client initialization failed: %v", err)
+	}
+
+	// 调用远程方法
+	resp, err := cli.SayHello(context.Background(), &amp;hello.Request{Name: "Kitex"})
+	if err != nil {
+		log.Fatalf("RPC call failed: %v", err)
+	}
+	log.Println("Response:", resp.Message) // 输出：Response: Hello Kitex
+}
+进阶特性（生产环境建议）
+1. 服务治理配置
+// 启用 ETCD 注册中心
+import (
+	etcd "github.com/kitex-contrib/registry-etcd"
+)
+
+resolver, err := etcd.NewResolver([]string{"etcd-server:2379"})
+svr := hello.NewHelloServer(
+	&amp;helloimpl.HelloServiceImpl{},
+	hello.WithRegistry(resolver), // 注册服务到 ETCD
+)
+
+// 客户端负载均衡
+cli, err := hello.NewHelloClient(
+	"hello-service",
+	hello.WithLoadBalancer(p2c.NewBalancer()), // 平滑加权负载均衡
+)
+2. 观测性支持
+// 集成 OpenTelemetry 链路追踪
+import (
+	"go.opentelemetry.io/otel"
+	kitexotel "github.com/kitex-contrib/otel"
+)
+
+// 服务端添加追踪中间件
+svr := hello.NewHelloServer(
+	&amp;helloimpl.HelloServiceImpl{},
+	hello.WithMiddleware(kitexotel.ServerMiddleware(otel.GetTracerProvider())),
+)
+
+// 客户端添加指标监控
+cli, err := hello.NewHelloClient(
+	"hello-service",
+	hello.WithClientOption(kitexotel.ClientMiddleware(otel.GetTracerProvider())),
+)
+官方文档：https://www.cloudwego.io/zh/docs/kitex/'><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="rpc & kitex"><meta itemprop=description content='什么是RPC RPC（Remote Procedure Call Protocol）即远程过程调用协议。
+通俗描述：客户端无需了解底层实现细节，即可像调用本地函数一样调用远程服务器上的服务。
+正式定义：一种通过网络透明地请求远程服务的协议，屏蔽了网络通信的复杂性。
+RPC的核心优势 底层抽象：封装网络通信细节（如连接管理、数据传输），专注业务逻辑开发。 跨语言兼容：支持多语言混合开发（如Go客户端调用Java服务端）。 高性能通信：通过二进制协议（如Protobuf）和高效传输层（如HTTP/2），性能优于传统RESTful接口。 RPC 的实现方式对比 实现方式 典型框架 核心特点 适用场景 基于 Socket Thrift、Dubbo 手动控制序列化与网络层，性能极高但开发复杂 高性能场景（如金融、IM） 基于 HTTP gRPC、RESTful 利用HTTP生态，gRPC基于HTTP/2+Protobuf实现高性能 通用场景、跨语言交互 基于消息队列 Apache Kafka、RabbitMQ 异步解耦，通过消息传递实现非阻塞调用（严格意义属异步通信而非RPC） 高并发、最终一致性场景 gRPC 简介 gRPC 是 Google 开源的高性能 RPC 框架，核心特性包括：
+HTTP/2 底层：支持多路复用、流模式（单向/双向）。 Protobuf 序列化：数据压缩率高、反序列化速度快。 多语言支持：原生支持Go、Java、Python等主流语言。 Kitex 是什么 Kitex 是字节跳动开源的 Go 微服务 RPC 框架，专为云原生场景设计：
+高性能：基于自研Netpoll网络库，QPS可达百万级，延迟低于1ms。 全链路治理：内置服务发现（支持ETCD/Consul）、负载均衡、熔断限流。 灵活扩展：通过插件机制支持自定义协议、中间件（如链路追踪、监控）。 多协议兼容：原生支持Thrift/Protobuf，兼容gRPC协议。 Kitex 快速入门 1. 环境准备 # 安装 Kitex 命令行工具 go get -u github.com/cloudwego/kitex/cmd/kitex@latest 2. 定义服务接口（Protobuf示例） // hello.proto syntax = "proto3"; package hello; service Hello { rpc SayHello(Request) returns (Response) {} // 定义远程方法 } message Request { string name = 1; // 请求参数 } message Response { string message = 1; // 响应结果 } 3. 生成代码 kitex -name hello -proto ./hello.proto -dst ./kitex_gen # 生成服务代码 4. 编写服务端 // server/main.go package main import ( "context" "log" "net" "kitex_gen/hello" // 自动生成的代码包 "kitex_gen/hello/helloimpl" // 服务实现包 ) // 实现服务接口 type HelloServiceImpl struct{} func (s *HelloServiceImpl) SayHello(ctx context.Context, req *hello.Request) (*hello.Response, error) { return &amp;hello.Response{Message: "Hello " + req.Name}, nil } func main() { // 初始化服务端，指定地址和处理器 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithServiceAddr(net.JoinHostPort("127.0.0.1", "8888")), // 绑定地址 ) // 启动服务 if err := svr.Run(); err != nil { log.Fatalf("Server exited with error: %v", err) } } 5. 编写客户端 // client/main.go package main import ( "context" "log" "kitex_gen/hello" // 自动生成的代码包 ) func main() { // 初始化客户端，指定服务名和地址 cli, err := hello.NewHelloClient( "hello-service", // 服务名（需与服务端一致） hello.WithHostPorts("127.0.0.1:8888"), // 目标地址 ) if err != nil { log.Fatalf("Client initialization failed: %v", err) } // 调用远程方法 resp, err := cli.SayHello(context.Background(), &amp;hello.Request{Name: "Kitex"}) if err != nil { log.Fatalf("RPC call failed: %v", err) } log.Println("Response:", resp.Message) // 输出：Response: Hello Kitex } 进阶特性（生产环境建议） 1. 服务治理配置 // 启用 ETCD 注册中心 import ( etcd "github.com/kitex-contrib/registry-etcd" ) resolver, err := etcd.NewResolver([]string{"etcd-server:2379"}) svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithRegistry(resolver), // 注册服务到 ETCD ) // 客户端负载均衡 cli, err := hello.NewHelloClient( "hello-service", hello.WithLoadBalancer(p2c.NewBalancer()), // 平滑加权负载均衡 ) 2. 观测性支持 // 集成 OpenTelemetry 链路追踪 import ( "go.opentelemetry.io/otel" kitexotel "github.com/kitex-contrib/otel" ) // 服务端添加追踪中间件 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithMiddleware(kitexotel.ServerMiddleware(otel.GetTracerProvider())), ) // 客户端添加指标监控 cli, err := hello.NewHelloClient( "hello-service", hello.WithClientOption(kitexotel.ClientMiddleware(otel.GetTracerProvider())), ) 官方文档：https://www.cloudwego.io/zh/docs/kitex/'><meta itemprop=datePublished content="2026-01-05T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-05T14:47:54+00:00"><meta itemprop=wordCount content="326"><meta itemprop=keywords content="Go"><meta property="og:url" content="https://hch1212.github.io/posts/2026/01/rpc-kitex/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="rpc & kitex"><meta property="og:description" content='什么是RPC RPC（Remote Procedure Call Protocol）即远程过程调用协议。
+通俗描述：客户端无需了解底层实现细节，即可像调用本地函数一样调用远程服务器上的服务。
+正式定义：一种通过网络透明地请求远程服务的协议，屏蔽了网络通信的复杂性。
+RPC的核心优势 底层抽象：封装网络通信细节（如连接管理、数据传输），专注业务逻辑开发。 跨语言兼容：支持多语言混合开发（如Go客户端调用Java服务端）。 高性能通信：通过二进制协议（如Protobuf）和高效传输层（如HTTP/2），性能优于传统RESTful接口。 RPC 的实现方式对比 实现方式 典型框架 核心特点 适用场景 基于 Socket Thrift、Dubbo 手动控制序列化与网络层，性能极高但开发复杂 高性能场景（如金融、IM） 基于 HTTP gRPC、RESTful 利用HTTP生态，gRPC基于HTTP/2+Protobuf实现高性能 通用场景、跨语言交互 基于消息队列 Apache Kafka、RabbitMQ 异步解耦，通过消息传递实现非阻塞调用（严格意义属异步通信而非RPC） 高并发、最终一致性场景 gRPC 简介 gRPC 是 Google 开源的高性能 RPC 框架，核心特性包括：
+HTTP/2 底层：支持多路复用、流模式（单向/双向）。 Protobuf 序列化：数据压缩率高、反序列化速度快。 多语言支持：原生支持Go、Java、Python等主流语言。 Kitex 是什么 Kitex 是字节跳动开源的 Go 微服务 RPC 框架，专为云原生场景设计：
+高性能：基于自研Netpoll网络库，QPS可达百万级，延迟低于1ms。 全链路治理：内置服务发现（支持ETCD/Consul）、负载均衡、熔断限流。 灵活扩展：通过插件机制支持自定义协议、中间件（如链路追踪、监控）。 多协议兼容：原生支持Thrift/Protobuf，兼容gRPC协议。 Kitex 快速入门 1. 环境准备 # 安装 Kitex 命令行工具 go get -u github.com/cloudwego/kitex/cmd/kitex@latest 2. 定义服务接口（Protobuf示例） // hello.proto syntax = "proto3"; package hello; service Hello { rpc SayHello(Request) returns (Response) {} // 定义远程方法 } message Request { string name = 1; // 请求参数 } message Response { string message = 1; // 响应结果 } 3. 生成代码 kitex -name hello -proto ./hello.proto -dst ./kitex_gen # 生成服务代码 4. 编写服务端 // server/main.go package main import ( "context" "log" "net" "kitex_gen/hello" // 自动生成的代码包 "kitex_gen/hello/helloimpl" // 服务实现包 ) // 实现服务接口 type HelloServiceImpl struct{} func (s *HelloServiceImpl) SayHello(ctx context.Context, req *hello.Request) (*hello.Response, error) { return &amp;hello.Response{Message: "Hello " + req.Name}, nil } func main() { // 初始化服务端，指定地址和处理器 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithServiceAddr(net.JoinHostPort("127.0.0.1", "8888")), // 绑定地址 ) // 启动服务 if err := svr.Run(); err != nil { log.Fatalf("Server exited with error: %v", err) } } 5. 编写客户端 // client/main.go package main import ( "context" "log" "kitex_gen/hello" // 自动生成的代码包 ) func main() { // 初始化客户端，指定服务名和地址 cli, err := hello.NewHelloClient( "hello-service", // 服务名（需与服务端一致） hello.WithHostPorts("127.0.0.1:8888"), // 目标地址 ) if err != nil { log.Fatalf("Client initialization failed: %v", err) } // 调用远程方法 resp, err := cli.SayHello(context.Background(), &amp;hello.Request{Name: "Kitex"}) if err != nil { log.Fatalf("RPC call failed: %v", err) } log.Println("Response:", resp.Message) // 输出：Response: Hello Kitex } 进阶特性（生产环境建议） 1. 服务治理配置 // 启用 ETCD 注册中心 import ( etcd "github.com/kitex-contrib/registry-etcd" ) resolver, err := etcd.NewResolver([]string{"etcd-server:2379"}) svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithRegistry(resolver), // 注册服务到 ETCD ) // 客户端负载均衡 cli, err := hello.NewHelloClient( "hello-service", hello.WithLoadBalancer(p2c.NewBalancer()), // 平滑加权负载均衡 ) 2. 观测性支持 // 集成 OpenTelemetry 链路追踪 import ( "go.opentelemetry.io/otel" kitexotel "github.com/kitex-contrib/otel" ) // 服务端添加追踪中间件 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithMiddleware(kitexotel.ServerMiddleware(otel.GetTracerProvider())), ) // 客户端添加指标监控 cli, err := hello.NewHelloClient( "hello-service", hello.WithClientOption(kitexotel.ClientMiddleware(otel.GetTracerProvider())), ) 官方文档：https://www.cloudwego.io/zh/docs/kitex/'><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-01-05T00:00:00+00:00"><meta property="article:modified_time" content="2026-01-05T14:47:54+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="rpc & kitex"><meta name=twitter:description content='什么是RPC RPC（Remote Procedure Call Protocol）即远程过程调用协议。
+通俗描述：客户端无需了解底层实现细节，即可像调用本地函数一样调用远程服务器上的服务。
+正式定义：一种通过网络透明地请求远程服务的协议，屏蔽了网络通信的复杂性。
+RPC的核心优势 底层抽象：封装网络通信细节（如连接管理、数据传输），专注业务逻辑开发。 跨语言兼容：支持多语言混合开发（如Go客户端调用Java服务端）。 高性能通信：通过二进制协议（如Protobuf）和高效传输层（如HTTP/2），性能优于传统RESTful接口。 RPC 的实现方式对比 实现方式 典型框架 核心特点 适用场景 基于 Socket Thrift、Dubbo 手动控制序列化与网络层，性能极高但开发复杂 高性能场景（如金融、IM） 基于 HTTP gRPC、RESTful 利用HTTP生态，gRPC基于HTTP/2+Protobuf实现高性能 通用场景、跨语言交互 基于消息队列 Apache Kafka、RabbitMQ 异步解耦，通过消息传递实现非阻塞调用（严格意义属异步通信而非RPC） 高并发、最终一致性场景 gRPC 简介 gRPC 是 Google 开源的高性能 RPC 框架，核心特性包括：
+HTTP/2 底层：支持多路复用、流模式（单向/双向）。 Protobuf 序列化：数据压缩率高、反序列化速度快。 多语言支持：原生支持Go、Java、Python等主流语言。 Kitex 是什么 Kitex 是字节跳动开源的 Go 微服务 RPC 框架，专为云原生场景设计：
+高性能：基于自研Netpoll网络库，QPS可达百万级，延迟低于1ms。 全链路治理：内置服务发现（支持ETCD/Consul）、负载均衡、熔断限流。 灵活扩展：通过插件机制支持自定义协议、中间件（如链路追踪、监控）。 多协议兼容：原生支持Thrift/Protobuf，兼容gRPC协议。 Kitex 快速入门 1. 环境准备 # 安装 Kitex 命令行工具 go get -u github.com/cloudwego/kitex/cmd/kitex@latest 2. 定义服务接口（Protobuf示例） // hello.proto syntax = "proto3"; package hello; service Hello { rpc SayHello(Request) returns (Response) {} // 定义远程方法 } message Request { string name = 1; // 请求参数 } message Response { string message = 1; // 响应结果 } 3. 生成代码 kitex -name hello -proto ./hello.proto -dst ./kitex_gen # 生成服务代码 4. 编写服务端 // server/main.go package main import ( "context" "log" "net" "kitex_gen/hello" // 自动生成的代码包 "kitex_gen/hello/helloimpl" // 服务实现包 ) // 实现服务接口 type HelloServiceImpl struct{} func (s *HelloServiceImpl) SayHello(ctx context.Context, req *hello.Request) (*hello.Response, error) { return &amp;hello.Response{Message: "Hello " + req.Name}, nil } func main() { // 初始化服务端，指定地址和处理器 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithServiceAddr(net.JoinHostPort("127.0.0.1", "8888")), // 绑定地址 ) // 启动服务 if err := svr.Run(); err != nil { log.Fatalf("Server exited with error: %v", err) } } 5. 编写客户端 // client/main.go package main import ( "context" "log" "kitex_gen/hello" // 自动生成的代码包 ) func main() { // 初始化客户端，指定服务名和地址 cli, err := hello.NewHelloClient( "hello-service", // 服务名（需与服务端一致） hello.WithHostPorts("127.0.0.1:8888"), // 目标地址 ) if err != nil { log.Fatalf("Client initialization failed: %v", err) } // 调用远程方法 resp, err := cli.SayHello(context.Background(), &amp;hello.Request{Name: "Kitex"}) if err != nil { log.Fatalf("RPC call failed: %v", err) } log.Println("Response:", resp.Message) // 输出：Response: Hello Kitex } 进阶特性（生产环境建议） 1. 服务治理配置 // 启用 ETCD 注册中心 import ( etcd "github.com/kitex-contrib/registry-etcd" ) resolver, err := etcd.NewResolver([]string{"etcd-server:2379"}) svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithRegistry(resolver), // 注册服务到 ETCD ) // 客户端负载均衡 cli, err := hello.NewHelloClient( "hello-service", hello.WithLoadBalancer(p2c.NewBalancer()), // 平滑加权负载均衡 ) 2. 观测性支持 // 集成 OpenTelemetry 链路追踪 import ( "go.opentelemetry.io/otel" kitexotel "github.com/kitex-contrib/otel" ) // 服务端添加追踪中间件 svr := hello.NewHelloServer( &amp;helloimpl.HelloServiceImpl{}, hello.WithMiddleware(kitexotel.ServerMiddleware(otel.GetTracerProvider())), ) // 客户端添加指标监控 cli, err := hello.NewHelloClient( "hello-service", hello.WithClientOption(kitexotel.ClientMiddleware(otel.GetTracerProvider())), ) 官方文档：https://www.cloudwego.io/zh/docs/kitex/'><link rel=canonical href=https://hch1212.github.io/posts/2026/01/rpc-kitex/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">rpc & kitex</h1><div class="text-xs antialiased opacity-60"><time>Jan 5, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><h2 id=什么是rpc>什么是RPC</h2><p>RPC（Remote Procedure Call Protocol）即远程过程调用协议。<br><strong>通俗描述</strong>：客户端无需了解底层实现细节，即可像调用本地函数一样调用远程服务器上的服务。<br><strong>正式定义</strong>：一种通过网络透明地请求远程服务的协议，屏蔽了网络通信的复杂性。</p><h2 id=rpc的核心优势>RPC的核心优势</h2><ul><li><strong>底层抽象</strong>：封装网络通信细节（如连接管理、数据传输），专注业务逻辑开发。</li><li><strong>跨语言兼容</strong>：支持多语言混合开发（如Go客户端调用Java服务端）。</li><li><strong>高性能通信</strong>：通过二进制协议（如Protobuf）和高效传输层（如HTTP/2），性能优于传统RESTful接口。</li></ul><h2 id=rpc-的实现方式对比>RPC 的实现方式对比</h2><table><thead><tr><th>实现方式</th><th>典型框架</th><th>核心特点</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>基于 Socket</strong></td><td>Thrift、Dubbo</td><td>手动控制序列化与网络层，性能极高但开发复杂</td><td>高性能场景（如金融、IM）</td></tr><tr><td><strong>基于 HTTP</strong></td><td>gRPC、RESTful</td><td>利用HTTP生态，gRPC基于HTTP/2+Protobuf实现高性能</td><td>通用场景、跨语言交互</td></tr><tr><td><strong>基于消息队列</strong></td><td>Apache Kafka、RabbitMQ</td><td>异步解耦，通过消息传递实现非阻塞调用（严格意义属异步通信而非RPC）</td><td>高并发、最终一致性场景</td></tr></tbody></table><h2 id=grpc-简介>gRPC 简介</h2><p>gRPC 是 Google 开源的高性能 RPC 框架，核心特性包括：</p><ul><li><strong>HTTP/2 底层</strong>：支持多路复用、流模式（单向/双向）。</li><li><strong>Protobuf 序列化</strong>：数据压缩率高、反序列化速度快。</li><li><strong>多语言支持</strong>：原生支持Go、Java、Python等主流语言。</li></ul><h2 id=kitex-是什么>Kitex 是什么</h2><p>Kitex 是字节跳动开源的 <strong>Go 微服务 RPC 框架</strong>，专为云原生场景设计：</p><ol><li><strong>高性能</strong>：基于自研Netpoll网络库，QPS可达百万级，延迟低于1ms。</li><li><strong>全链路治理</strong>：内置服务发现（支持ETCD/Consul）、负载均衡、熔断限流。</li><li><strong>灵活扩展</strong>：通过插件机制支持自定义协议、中间件（如链路追踪、监控）。</li><li><strong>多协议兼容</strong>：原生支持Thrift/Protobuf，兼容gRPC协议。</li></ol><h2 id=kitex-快速入门>Kitex 快速入门</h2><h3 id=1-环境准备>1. 环境准备</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1># 安装 Kitex 命令行工具</span>
+</span></span><span class=line><span class=cl>go get -u github.com/cloudwego/kitex/cmd/kitex@latest
+</span></span></code></pre></div><h3 id=2-定义服务接口protobuf示例>2. 定义服务接口（Protobuf示例）</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-protobuf data-lang=protobuf><span class=line><span class=cl><span class=c1>// hello.proto
+</span></span></span><span class=line><span class=cl><span class=n>syntax</span> <span class=o>=</span> <span class=s>&#34;proto3&#34;</span><span class=p>;</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=kn>package</span> <span class=nn>hello</span><span class=p>;</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=kd>service</span> <span class=n>Hello</span> <span class=p>{</span><span class=err>
+</span></span></span><span class=line><span class=cl>  <span class=k>rpc</span> <span class=n>SayHello</span><span class=p>(</span><span class=n>Request</span><span class=p>)</span> <span class=k>returns</span> <span class=p>(</span><span class=n>Response</span><span class=p>)</span> <span class=p>{}</span> <span class=c1>// 定义远程方法
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=kd>message</span> <span class=nc>Request</span> <span class=p>{</span><span class=err>
+</span></span></span><span class=line><span class=cl>  <span class=kt>string</span> <span class=n>name</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// 请求参数
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=kd>message</span> <span class=nc>Response</span> <span class=p>{</span><span class=err>
+</span></span></span><span class=line><span class=cl>  <span class=kt>string</span> <span class=kd>message</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// 响应结果
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=err>
+</span></span></span></code></pre></div><h3 id=3-生成代码>3. 生成代码</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kitex -name hello -proto ./hello.proto -dst ./kitex_gen <span class=c1># 生成服务代码</span>
+</span></span></code></pre></div><h3 id=4-编写服务端>4. 编写服务端</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// server/main.go</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>package</span><span class=w> </span><span class=nx>main</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>import</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;context&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;log&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;net&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;kitex_gen/hello&#34;</span><span class=w>        </span><span class=c1>// 自动生成的代码包</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;kitex_gen/hello/helloimpl&#34;</span><span class=w> </span><span class=c1>// 服务实现包</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>// 实现服务接口</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>type</span><span class=w> </span><span class=nx>HelloServiceImpl</span><span class=w> </span><span class=kd>struct</span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>func</span><span class=w> </span><span class=p>(</span><span class=nx>s</span><span class=w> </span><span class=o>*</span><span class=nx>HelloServiceImpl</span><span class=p>)</span><span class=w> </span><span class=nf>SayHello</span><span class=p>(</span><span class=nx>ctx</span><span class=w> </span><span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span><span class=w> </span><span class=nx>req</span><span class=w> </span><span class=o>*</span><span class=nx>hello</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span><span class=w> </span><span class=p>(</span><span class=o>*</span><span class=nx>hello</span><span class=p>.</span><span class=nx>Response</span><span class=p>,</span><span class=w> </span><span class=kt>error</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>return</span><span class=w> </span><span class=o>&amp;</span><span class=nx>hello</span><span class=p>.</span><span class=nx>Response</span><span class=p>{</span><span class=nx>Message</span><span class=p>:</span><span class=w> </span><span class=s>&#34;Hello &#34;</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nx>req</span><span class=p>.</span><span class=nx>Name</span><span class=p>},</span><span class=w> </span><span class=kc>nil</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>func</span><span class=w> </span><span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=c1>// 初始化服务端，指定地址和处理器</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>svr</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloServer</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=o>&amp;</span><span class=nx>helloimpl</span><span class=p>.</span><span class=nx>HelloServiceImpl</span><span class=p>{},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithServiceAddr</span><span class=p>(</span><span class=nx>net</span><span class=p>.</span><span class=nf>JoinHostPort</span><span class=p>(</span><span class=s>&#34;127.0.0.1&#34;</span><span class=p>,</span><span class=w> </span><span class=s>&#34;8888&#34;</span><span class=p>)),</span><span class=w> </span><span class=c1>// 绑定地址</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=c1>// 启动服务</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>if</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>svr</span><span class=p>.</span><span class=nf>Run</span><span class=p>();</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>nil</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=nx>log</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Server exited with error: %v&#34;</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></div><h3 id=5-编写客户端>5. 编写客户端</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// client/main.go</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>package</span><span class=w> </span><span class=nx>main</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>import</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;context&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;log&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;kitex_gen/hello&#34;</span><span class=w> </span><span class=c1>// 自动生成的代码包</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>func</span><span class=w> </span><span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=c1>// 初始化客户端，指定服务名和地址</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>cli</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloClient</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=s>&#34;hello-service&#34;</span><span class=p>,</span><span class=w> </span><span class=c1>// 服务名（需与服务端一致）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithHostPorts</span><span class=p>(</span><span class=s>&#34;127.0.0.1:8888&#34;</span><span class=p>),</span><span class=w> </span><span class=c1>// 目标地址</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>if</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>nil</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=nx>log</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Client initialization failed: %v&#34;</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=c1>// 调用远程方法</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>resp</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>cli</span><span class=p>.</span><span class=nf>SayHello</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span><span class=w> </span><span class=o>&amp;</span><span class=nx>hello</span><span class=p>.</span><span class=nx>Request</span><span class=p>{</span><span class=nx>Name</span><span class=p>:</span><span class=w> </span><span class=s>&#34;Kitex&#34;</span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>if</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>nil</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=nx>log</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;RPC call failed: %v&#34;</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Response:&#34;</span><span class=p>,</span><span class=w> </span><span class=nx>resp</span><span class=p>.</span><span class=nx>Message</span><span class=p>)</span><span class=w> </span><span class=c1>// 输出：Response: Hello Kitex</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></div><h2 id=进阶特性生产环境建议>进阶特性（生产环境建议）</h2><h3 id=1-服务治理配置>1. 服务治理配置</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// 启用 ETCD 注册中心</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>import</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>etcd</span><span class=w> </span><span class=s>&#34;github.com/kitex-contrib/registry-etcd&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nx>resolver</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>etcd</span><span class=p>.</span><span class=nf>NewResolver</span><span class=p>([]</span><span class=kt>string</span><span class=p>{</span><span class=s>&#34;etcd-server:2379&#34;</span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nx>svr</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloServer</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=o>&amp;</span><span class=nx>helloimpl</span><span class=p>.</span><span class=nx>HelloServiceImpl</span><span class=p>{},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithRegistry</span><span class=p>(</span><span class=nx>resolver</span><span class=p>),</span><span class=w> </span><span class=c1>// 注册服务到 ETCD</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>// 客户端负载均衡</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nx>cli</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloClient</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;hello-service&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithLoadBalancer</span><span class=p>(</span><span class=nx>p2c</span><span class=p>.</span><span class=nf>NewBalancer</span><span class=p>()),</span><span class=w> </span><span class=c1>// 平滑加权负载均衡</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span></code></pre></div><h3 id=2-观测性支持>2. 观测性支持</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// 集成 OpenTelemetry 链路追踪</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kn>import</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;go.opentelemetry.io/otel&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>kitexotel</span><span class=w> </span><span class=s>&#34;github.com/kitex-contrib/otel&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>// 服务端添加追踪中间件</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nx>svr</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloServer</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=o>&amp;</span><span class=nx>helloimpl</span><span class=p>.</span><span class=nx>HelloServiceImpl</span><span class=p>{},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithMiddleware</span><span class=p>(</span><span class=nx>kitexotel</span><span class=p>.</span><span class=nf>ServerMiddleware</span><span class=p>(</span><span class=nx>otel</span><span class=p>.</span><span class=nf>GetTracerProvider</span><span class=p>())),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>// 客户端添加指标监控</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nx>cli</span><span class=p>,</span><span class=w> </span><span class=nx>err</span><span class=w> </span><span class=o>:=</span><span class=w> </span><span class=nx>hello</span><span class=p>.</span><span class=nf>NewHelloClient</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=s>&#34;hello-service&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nx>hello</span><span class=p>.</span><span class=nf>WithClientOption</span><span class=p>(</span><span class=nx>kitexotel</span><span class=p>.</span><span class=nf>ClientMiddleware</span><span class=p>(</span><span class=nx>otel</span><span class=p>.</span><span class=nf>GetTracerProvider</span><span class=p>())),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w>
+</span></span></span></code></pre></div><p>官方文档：<a href=https://www.cloudwego.io/zh/docs/kitex/>https://www.cloudwego.io/zh/docs/kitex/</a></p></section><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
