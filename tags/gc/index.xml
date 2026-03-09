@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Gc on giftiaのblog</title><link>https://hch1212.github.io/tags/gc/</link><description>Recent content in Gc on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 08:38:30 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/gc/index.xml" rel="self" type="application/rss+xml"/><item><title>go GC 三色标记</title><link>https://hch1212.github.io/posts/2026/01/go-gc-%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/go-gc-%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0/</guid><description>&lt;h2 id="三色标记法"&gt;三色标记法&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;白色：尚未被追踪。&lt;/li&gt;
+&lt;li&gt;灰色：已被追踪，但其子节点还未被探索。&lt;/li&gt;
+&lt;li&gt;黑色：已被完全探索。（活跃）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="https://hch1212.github.io/other/gc1.png" alt="img"&gt;
+&lt;img src="https://hch1212.github.io/other/gc2.png" alt="img"&gt;
+&lt;img src="https://hch1212.github.io/other/gc3.png" alt="img"&gt;
+&lt;img src="https://hch1212.github.io/other/gc4.png" alt="img"&gt;
+&lt;img src="https://hch1212.github.io/other/gc5.png" alt="img"&gt;&lt;/p&gt;
+&lt;h2 id="强三色不变式"&gt;强三色不变式&lt;/h2&gt;
+&lt;p&gt;不存在黑色对象引用白色对象。&lt;/p&gt;
+&lt;h2 id="弱三色不变式"&gt;弱三色不变式&lt;/h2&gt;
+&lt;p&gt;所有被黑色对象引用的白色对象都必须有上游的灰色对象。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;强弱三色不变式：解决漏标问题（黑色对象引用白色对象）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="写屏障"&gt;写屏障&lt;/h2&gt;
+&lt;p&gt;写屏障（write barrier）是一种技术，用于解决 GC 标记阶段 即使对象变化，也能满足强弱三色不变式。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;插入写屏障：
+并发标记阶段，当一个黑色对象&lt;strong&gt;新&lt;/strong&gt;指向一个白色对象时，将白色对象标记为灰色。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;删除写屏障：
+并发标记阶段，当一个灰色对象&lt;strong&gt;删除&lt;/strong&gt;指向一个白色对象的指针时，将白色对象标记为灰色。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;混合写屏障：
+插入写屏障 + 删除写屏障。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="注意"&gt;注意&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;栈区没有写屏障&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;栈区的黑色对象新增引用白色对象，直接标记为黑色。（删除时不变，等下一次 GC）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;参考：&lt;a href="https://www.bilibili.com/video/BV1SLtVe7EDR?vd_source=1fc15dfc7872eca10bc43b8ee8d73958"&gt;https://www.bilibili.com/video/BV1SLtVe7EDR?vd_source=1fc15dfc7872eca10bc43b8ee8d73958&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

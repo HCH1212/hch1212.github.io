@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Windows on giftiaのblog</title><link>https://hch1212.github.io/tags/windows/</link><description>Recent content in Windows on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 08:38:30 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/windows/index.xml" rel="self" type="application/rss+xml"/><item><title>windows or mac on docker</title><link>https://hch1212.github.io/posts/2026/01/windows-or-mac-on-docker/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/windows-or-mac-on-docker/</guid><description>&lt;h2 id="如何在linux上运行windows虚拟机"&gt;如何在linux上运行windows虚拟机&lt;/h2&gt;
+&lt;p&gt;之前一直使用vmware, 就是安装vmware有点繁琐，使用体验感还不错。&lt;/p&gt;
+&lt;p&gt;最近从朋友那了解到一个更加轻便简单的方式起windows，特分享一下：&lt;/p&gt;
+&lt;p&gt;前提：能正常使用的docker&lt;/p&gt;
+&lt;p&gt;步骤:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;拉取镜像&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;docker pull dockurr/windows
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start="2"&gt;
+&lt;li&gt;新建一个文件夹wins(自定义),新建配置文件docker-compose.yaml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;mkdir wins
+touch docker-compose.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start="3"&gt;
+&lt;li&gt;编写docker-compose.yaml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;vim docker-compose.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;pre tabindex="0"&gt;&lt;code&gt;services:
+ windows:
+ image: dockurr/windows
+ container_name: windows
+ environment:
+ VERSION: &amp;#34;11&amp;#34; # windows版本
+ RAM_SIZE: &amp;#34;8G&amp;#34; # 分配内存
+ CPU_CORES: &amp;#34;8&amp;#34; # 分配cpu核数
+ devices:
+ - /dev/kvm
+ - /dev/net/tun
+ cap_add:
+ - NET_ADMIN
+ ports:
+ - 8006:8006 # http端口
+ - 3389:3389/tcp
+ - 3389:3389/udp
+ volumes:
+ - ./windows:/storage
+ restart: always
+ stop_grace_period: 2m
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start="4"&gt;
+&lt;li&gt;运行docker-compose.yaml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;docker compose up -d
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start="5"&gt;
+&lt;li&gt;访问127.0.0.1:8006, 第一次等待windows安装&lt;/li&gt;
+&lt;li&gt;关闭的话直接关闭容器&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;github: &lt;a href="https://github.com/dockur/windows"&gt;https://github.com/dockur/windows&lt;/a&gt;
+还有一个相似的macos：&lt;a href="https://github.com/dockur/macos"&gt;https://github.com/dockur/macos&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>容器 on giftiaのblog</title><link>https://hch1212.github.io/tags/%E5%AE%B9%E5%99%A8/</link><description>Recent content in 容器 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 07:51:29 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/%E5%AE%B9%E5%99%A8/index.xml" rel="self" type="application/rss+xml"/><item><title>K8s基础使用</title><link>https://hch1212.github.io/posts/2026/03/k8s%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/</link><pubDate>Tue, 03 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/k8s%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/</guid><description>&lt;p&gt;Kubernetes（简称 K8s）是一个开源的容器编排平台，主要用于自动化部署、弹性扩缩容和容器化应用管理。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>容器 on giftiaのblog</title><link>https://hch1212.github.io/tags/%E5%AE%B9%E5%99%A8/</link><description>Recent content in 容器 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 08:38:30 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/%E5%AE%B9%E5%99%A8/index.xml" rel="self" type="application/rss+xml"/><item><title>K8s基础使用</title><link>https://hch1212.github.io/posts/2026/03/k8s%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/</link><pubDate>Tue, 03 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/k8s%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/</guid><description>&lt;p&gt;Kubernetes（简称 K8s）是一个开源的容器编排平台，主要用于自动化部署、弹性扩缩容和容器化应用管理。&lt;/p&gt;
 &lt;h2 id="基础概念"&gt;基础概念&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;Pod：K8s 中最小的调度单元。一个 Pod 通常运行一个容器，也可以运行一组紧密协作的容器。&lt;/li&gt;
@@ -63,4 +63,35 @@
 &lt;li&gt;删除资源&lt;/li&gt;
 &lt;/ol&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl delete -f &amp;lt;file.yaml&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item></channel></rss>
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>docker挂载路径问题</title><link>https://hch1212.github.io/posts/2026/01/docker%E6%8C%82%E8%BD%BD%E8%B7%AF%E5%BE%84%E9%97%AE%E9%A2%98/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/docker%E6%8C%82%E8%BD%BD%E8%B7%AF%E5%BE%84%E9%97%AE%E9%A2%98/</guid><description>&lt;h1 id="docker-volume-挂载失效问题为什么删除重建目录会导致容器找不到路径"&gt;Docker Volume 挂载失效问题：为什么删除重建目录会导致容器找不到路径？&lt;/h1&gt;
+&lt;h2 id="问题背景"&gt;问题背景&lt;/h2&gt;
+&lt;p&gt;在使用 Docker 部署应用时，我遇到了一个令人困惑的问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过 &lt;code&gt;docker-compose up -d&lt;/code&gt; 启动了容器&lt;/li&gt;
+&lt;li&gt;删除了宿主机上的挂载目录，然后重新创建&lt;/li&gt;
+&lt;li&gt;容器内的程序报错：&lt;strong&gt;找不到文件路径&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;明明目录和文件都重新创建了，为什么容器还是找不到？&lt;/p&gt;
+&lt;h2 id="问题复现"&gt;问题复现&lt;/h2&gt;
+&lt;p&gt;以我的项目为例，&lt;code&gt;docker-compose.yml&lt;/code&gt; 配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nt"&gt;services&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;gamerobot&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;build&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l"&gt;.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;container_name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l"&gt;gamerobot&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;- &lt;span class="l"&gt;/home/lovania/server/public:/home/lovania/server/public:ro&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c"&gt;# ... 其他配置&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;操作步骤：&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. 启动容器&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;docker compose up -d gamerobot
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. 在宿主机上删除并重建目录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rm -rf /home/lovania/server/public
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;mkdir -p /home/lovania/server/public
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 重新创建脚本文件&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;touch /home/lovania/server/public/start.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. 容器内报错&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Error: 脚本文件不存在: /home/lovania/server/public/start.sh&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="问题原因分析"&gt;问题原因分析&lt;/h2&gt;
+&lt;p&gt;这个问题的本质是 &lt;strong&gt;Docker Volume 挂载机制&lt;/strong&gt; 导致的。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Scheduler on giftiaのblog</title><link>https://hch1212.github.io/tags/scheduler/</link><description>Recent content in Scheduler on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 08:38:30 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/scheduler/index.xml" rel="self" type="application/rss+xml"/><item><title>GMP 模型</title><link>https://hch1212.github.io/posts/2026/01/gmp-%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/gmp-%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="gmp-模型"&gt;GMP 模型&lt;/h2&gt;
+&lt;p&gt;&lt;img src="https://hch1212.github.io/other/gmp.png" alt="img"&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;G：Goroutine&lt;/li&gt;
+&lt;li&gt;M：工作线程(OS thread)也被称为 Machine。&lt;/li&gt;
+&lt;li&gt;P：Goroutine 调度器，可以通过 GOMAXPROCS 进行修改。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="调度流程"&gt;调度流程&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;创建 Goroutine
+&lt;ul&gt;
+&lt;li&gt;当通过 go func() 创建新的 Goroutine 时，G 会首先被加入到与当前 P 关联的本地队列中。&lt;/li&gt;
+&lt;li&gt;如果 P 的本地队列已满（超过 256 个 G），则新的 G 会被放入全局队列。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;调度与执行
+&lt;ul&gt;
+&lt;li&gt;每个 M 与一个 P 绑定，M 从 P 的本地队列中获取一个 G 来执行。&lt;/li&gt;
+&lt;li&gt;如果 P 的本地队列为空，M 会尝试从全局队列或其他 P 的本地队列中偷取（work stealing）任务执行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;系统调用与阻塞
+&lt;ul&gt;
+&lt;li&gt;当 G 执行过程中发生阻塞或系统调用，M 也会被阻塞。这时，P 会解绑当前的 M，并尝试寻找或创建新的 M 来继续执行其他 G。&lt;/li&gt;
+&lt;li&gt;阻塞结束后，原来的 M 会尝试重新绑定一个 P 继续执行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="知识点"&gt;知识点&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;一个 P 对应一个 M。(但P和M的数量不相关)&lt;/li&gt;
+&lt;li&gt;每个 P 都有一个本地运行队列，里面存储着即将被执行的 G。&lt;/li&gt;
+&lt;li&gt;全局队列有锁，本地队列没有锁。&lt;/li&gt;
+&lt;li&gt;G 会关联某个 P，如果没有 P，会新建一个 P。&lt;/li&gt;
+&lt;li&gt;G 优先放关联的 P 的本地队列，如果关联的 P 的本地队列满了，不会优先放到其他 P 的本地队列，而是会将本地队列中&lt;strong&gt;一半&lt;/strong&gt;的 G 移动到全局队列，然后把新创建的 G 放入本地队列。&lt;/li&gt;
+&lt;li&gt;P 的本地队列 G 执行完后，会去全局队列获取新的 G。&lt;/li&gt;
+&lt;li&gt;P 的本地队列 G 执行完后，全局队列也没有了，就会 work-stealing。&lt;/li&gt;
+&lt;li&gt;全局队列中 G 和一个新 G，新 G 会优先放入本地队列。（全局队列会有饥饿现象，但减少了锁竞争）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="work-stealing"&gt;work-stealing&lt;/h2&gt;
+&lt;p&gt;P 的本地队列 G 执行完后，全局队列也没有了。就从隔壁的本地队列偷&lt;strong&gt;一半&lt;/strong&gt;的 G。&lt;/p&gt;</description></item></channel></rss>

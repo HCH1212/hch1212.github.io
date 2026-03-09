@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Source-Code on giftiaのblog</title><link>https://hch1212.github.io/tags/source-code/</link><description>Recent content in Source-Code on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 09 Mar 2026 08:38:30 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/source-code/index.xml" rel="self" type="application/rss+xml"/><item><title>sync.map</title><link>https://hch1212.github.io/posts/2026/01/sync.map/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/sync.map/</guid><description>&lt;h2 id="syncmap"&gt;sync.Map&lt;/h2&gt;
+&lt;p&gt;sync.Map 是 Go 语言标准库中提供的并发安全的 Map 类型，它适用于读多写少的场景。以下是 sync.Map 的一些关键原理：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;读写分离&lt;/strong&gt;：sync.Map 通过读写分离来提升性能。它内部维护了两种数据结构：一个只读的只读字典 (read)，一个读写字典 (dirty)。读操作优先访问只读字典，只有在只读字典中找不到数据时才会访问读写字典。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;延迟写入&lt;/strong&gt;：写操作并不立即更新只读字典(read)，而是更新读写字典 (dirty)。只有在读操作发现只读字典的数据过时（即 misses 计数器超过阈值）时，才会将读写字典中的数据同步到只读字典。这种策略减少了写操作对读操作的影响。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;原子操作&lt;/strong&gt;：读操作大部分是无锁的，因为它们主要访问只读的 read map，并通过原子操作 (atomic.Value) 来保护读操作；写操作会加锁（使用 sync.Mutex）保护写操作，以确保对 dirty map 的并发安全 ，确保高并发环境下的安全性。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;条目淘汰&lt;/strong&gt;：当一个条目被删除时，它只从读写字典中删除。只有在下一次数据同步时，该条目才会从只读字典中删除。
+通过这种设计，sync.Map 在读多写少的场景下能够提供较高的性能，同时保证并发安全。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="syncmap的锁机制跟你自己用锁加上map有区别么"&gt;sync.map的锁机制跟你自己用锁加上map有区别么&lt;/h2&gt;
+&lt;p&gt;sync.Map 的锁机制和自己使用锁（如 sync.Mutex 或 sync.RWMutex）加上 map 的方式有一些关键区别：&lt;/p&gt;
+&lt;h3 id="自己使用锁和-map"&gt;自己使用锁和 map&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;全局锁：
+&lt;ul&gt;
+&lt;li&gt;你需要自己管理锁，通常是一个全局的 sync.Mutex 或 sync.RWMutex。&lt;/li&gt;
+&lt;li&gt;对于读多写少的场景，使用 sync.RWMutex 可以允许多个读操作同时进行，但写操作依然会阻塞所有读操作。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;手动处理：
+&lt;ul&gt;
+&lt;li&gt;你需要自己编写代码来处理加锁、解锁、读写操作。&lt;/li&gt;
+&lt;li&gt;错误使用锁可能导致死锁、竞态条件等问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;简单直观：
+&lt;ul&gt;
+&lt;li&gt;实现简单，容易理解和调试。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="syncmap-1"&gt;sync.Map&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;读写分离：
+&lt;ul&gt;
+&lt;li&gt;sync.Map 内部使用读写分离的策略，通过只读和读写两个 map 提高读操作的性能。&lt;/li&gt;
+&lt;li&gt;读操作大部分情况下是无锁的，只有在只读 map 中找不到数据时，才会加锁访问读写 map。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;延迟写入：
+&lt;ul&gt;
+&lt;li&gt;写操作更新读写 map（dirty），但不会立即更新只读 map（read）。只有当读操作发现只读 map 中的数据过时时，才会将读写 map 的数据同步到只读 map 中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;内置优化：
+&lt;ul&gt;
+&lt;li&gt;sync.Map 内部有各种优化措施，如原子操作、延迟写入等，使得它在读多写少的场景下性能更高。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="区别总结"&gt;区别总结&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;并发性能：sync.Map 通过读写分离和延迟写入在读多写少的场景下提供更高的并发性能，而使用全局锁的 map 在读写频繁时性能较低。&lt;/li&gt;
+&lt;li&gt;复杂性和易用性：sync.Map 封装了复杂的并发控制逻辑，使用起来更简单，而自己管理锁和 map 需要处理更多的并发控制细节。&lt;/li&gt;
+&lt;li&gt;适用场景：sync.Map 适用于读多写少的场景，而使用全局锁的 map 适用于读写操作较均衡或者对性能要求不高的场景。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;如果你的应用场景是读多写少且对性能要求较高，sync.Map 会是一个更好的选择。而对于简单的并发访问控制，使用 sync.Mutex 或 sync.RWMutex 加上 map 也可以满足需求。&lt;/p&gt;</description></item></channel></rss>
