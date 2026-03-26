@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Thu, 26 Mar 2026 09:35:59 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>K8s Workload</title><link>https://hch1212.github.io/posts/2026/03/k8s-workload/</link><pubDate>Tue, 24 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/k8s-workload/</guid><description>&lt;h2 id="workload-是什么"&gt;Workload 是什么&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Thu, 26 Mar 2026 09:59:35 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>K8s Workload</title><link>https://hch1212.github.io/posts/2026/03/k8s-workload/</link><pubDate>Tue, 24 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/k8s-workload/</guid><description>&lt;h2 id="workload-是什么"&gt;Workload 是什么&lt;/h2&gt;
 &lt;p&gt;在 Kubernetes 里，&lt;code&gt;Workload&lt;/code&gt; 可以理解为“应用运行方式的声明”。&lt;/p&gt;
 &lt;p&gt;我们并不直接操作 Pod，而是通过 Workload 对象告诉集群：&lt;/p&gt;
 &lt;ul&gt;
@@ -6162,7 +6162,7 @@ touch docker-compose.yaml
 &lt;li&gt;&lt;a href="https://www.fengfengzhidao.com/"&gt;fengfengzhidao&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="https://blog.coldbin.top/"&gt;bing&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="https://zhaoz3y.github.io/"&gt;3ing&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.moonic.site/"&gt;wubingyue&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.moonic.site/"&gt;moonic&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;blockquote&gt;
 &lt;p&gt;欢迎在评论区或通过邮件申请交换友链。&lt;/p&gt;
