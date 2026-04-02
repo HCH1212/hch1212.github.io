@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on giftiaのblog</title><link>https://hch1212.github.io/posts/</link><description>Recent content in Posts on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 31 Mar 2026 02:07:37 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on giftiaのblog</title><link>https://hch1212.github.io/posts/</link><description>Recent content in Posts on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Thu, 02 Apr 2026 02:57:20 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
 &lt;p&gt;在处理海量数据去重或判断“是否存在”时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
 &lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的“误判率”。&lt;/p&gt;
 &lt;p&gt;它的回答只有两种可能：&lt;/p&gt;
@@ -3991,6 +3991,7 @@ git fetch origin # 从远程获取最新代码
 &lt;li&gt;P 的本地队列 G 执行完后，会去全局队列获取新的 G。&lt;/li&gt;
 &lt;li&gt;P 的本地队列 G 执行完后，全局队列也没有了，就会 work-stealing。&lt;/li&gt;
 &lt;li&gt;全局队列中 G 和一个新 G，新 G 会优先放入本地队列。（全局队列会有饥饿现象，但减少了锁竞争）&lt;/li&gt;
+&lt;li&gt;每调度 61 次，M 就会尝试从全局队列中获取一个 G，即使本地队列还有任务。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id="work-stealing"&gt;work-stealing&lt;/h2&gt;
 &lt;p&gt;P 的本地队列 G 执行完后，全局队列也没有了。就从隔壁的本地队列偷&lt;strong&gt;一半&lt;/strong&gt;的 G。&lt;/p&gt;</description></item><item><title>go GC 三色标记</title><link>https://hch1212.github.io/posts/2026/01/go-gc-%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/go-gc-%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0/</guid><description>&lt;h2 id="三色标记法"&gt;三色标记法&lt;/h2&gt;
