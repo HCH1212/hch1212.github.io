@@ -1,4 +1,43 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Linux on giftiaのblog</title><link>https://hch1212.github.io/tags/linux/</link><description>Recent content in Linux on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Apr 2026 12:33:41 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>linux 常用命令</title><link>https://hch1212.github.io/posts/2026/01/linux-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/linux-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</guid><description>&lt;ol&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Linux on giftiaのblog</title><link>https://hch1212.github.io/tags/linux/</link><description>Recent content in Linux on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Thu, 16 Apr 2026 08:04:20 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>Bash</title><link>https://hch1212.github.io/posts/2026/04/bash/</link><pubDate>Thu, 16 Apr 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/04/bash/</guid><description>&lt;h1 id="bash-基础指南从入门到实用"&gt;Bash 基础指南：从入门到实用&lt;/h1&gt;
+&lt;p&gt;Bash (Bourne Again SHell) 是大多数 Linux 和 macOS 系统的默认命令行解释器。它不仅是一个与系统交互的界面，也是一门强大的脚本语言。本文将带你快速掌握 Bash 的核心概念和实用技巧。&lt;/p&gt;
+&lt;h2 id="1-什么是-bash"&gt;1. 什么是 Bash？&lt;/h2&gt;
+&lt;p&gt;简单来说，Bash 就像一个翻译官。你输入人类可读的命令，Bash 将其翻译成操作系统能理解的指令并执行。&lt;/p&gt;
+&lt;h2 id="2-基础命令"&gt;2. 基础命令&lt;/h2&gt;
+&lt;p&gt;在开始编写脚本之前，我们需要熟悉一些最常用的基础命令：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pwd&lt;/code&gt;: 显示当前所在目录的路径 (Print Working Directory)。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ls&lt;/code&gt;: 列出当前目录下的文件和文件夹。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ls -l&lt;/code&gt;: 详细列表格式。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ls -a&lt;/code&gt;: 显示隐藏文件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cd&lt;/code&gt;: 切换目录 (Change Directory)。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;cd /var/log&lt;/code&gt;: 进入绝对路径。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cd ..&lt;/code&gt;: 返回上一级目录。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mkdir&lt;/code&gt;: 创建新目录。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rm&lt;/code&gt;: 删除文件或目录。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;rm file.txt&lt;/code&gt;: 删除文件。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rm -r folder&lt;/code&gt;: 递归删除目录及其内容。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="3-变量"&gt;3. 变量&lt;/h2&gt;
+&lt;p&gt;Bash 中的变量不需要声明类型，直接赋值即可。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定义和使用变量：&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 定义变量（注意：等号两边不能有空格）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;World&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;age&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;25&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 使用变量（在变量名前加 $ 符号）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Hello, &lt;/span&gt;&lt;span class="nv"&gt;$name&lt;/span&gt;&lt;span class="s2"&gt;!&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;I am &lt;/span&gt;&lt;span class="nv"&gt;$age&lt;/span&gt;&lt;span class="s2"&gt; years old.&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="4-条件判断"&gt;4. 条件判断&lt;/h2&gt;
+&lt;p&gt;Bash 使用 &lt;code&gt;if&lt;/code&gt; 语句进行条件控制。&lt;/p&gt;</description></item><item><title>linux 常用命令</title><link>https://hch1212.github.io/posts/2026/01/linux-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/linux-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</guid><description>&lt;ol&gt;
 &lt;li&gt;&lt;strong&gt;ls 列出目录内容&lt;/strong&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;ul&gt;
