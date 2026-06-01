@@ -1,0 +1,153 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Pod生命周期 - giftiaのblog</title><meta name=theme-color><meta name=description content="Pod 生命周期里，最容易影响线上稳定性的部分，往往不是“能不能启动”，而是探针配得对不对。
+这篇就重点讲三个探针：
+
+livenessProbe
+readinessProbe
+startupProbe
+
+先记住三句话
+
+livenessProbe 失败：容器会被重启。
+readinessProbe 失败：容器不接流量，但不一定重启。
+startupProbe 生效期间：liveness/readiness 会被暂时屏蔽，给慢启动应用“保护期”。
+
+三个探针分别解决什么问题
+1. livenessProbe：进程还“活着”吗
+它解决的是“程序假死”问题。
+比如：进程还在，但线程卡死、连接池耗尽、接口永远不返回。这个时候容器看起来在运行，但其实已经不可用。
+livenessProbe 连续失败后，kubelet 会重启容器。
+适合场景：
+
+进程可能进入死锁/卡死
+希望通过重启自愈
+
+2. readinessProbe：现在能接流量吗
+它解决的是“服务可用性”问题。
+即使进程活着，也可能暂时不能服务，比如：
+
+应用刚启动，缓存还没预热
+依赖数据库暂时不可达
+正在做优雅下线
+
+readinessProbe 失败时，Pod 会从 Service Endpoints 里移除，不再接收新流量。
+适合场景：
+
+有初始化过程
+对外服务前有前置依赖
+需要灰度或优雅摘流
+
+3. startupProbe：给慢启动应用留时间
+它解决的是“启动慢导致误杀”的问题。
+有些应用启动要几十秒甚至几分钟。如果只配 livenessProbe，很可能应用还没起来就被判死，不断重启，最终 CrashLoopBackOff。
+配置 startupProbe 后，在它成功之前，liveness/readiness 不会生效。
+适合场景：
+
+Java 大应用
+需要加载大量模型/数据
+启动期有迁移、预热等重操作
+
+一个常用的探针组合示例
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+        - name: app
+          image: demo/app:1.0.0
+          ports:
+            - containerPort: 8080
+
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 24
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
+            successThreshold: 1
+这个配置表达的意思："><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Pod生命周期"><meta itemprop=description content="以三种探针为主线，理解 Pod 生命周期中的健康检查与流量切换。"><meta itemprop=datePublished content="2026-06-01T00:00:00+00:00"><meta itemprop=dateModified content="2026-06-01T07:37:00+00:00"><meta itemprop=wordCount content="250"><meta itemprop=keywords content="Kubernetes,Pod,LivenessProbe,ReadinessProbe,StartupProbe"><meta property="og:url" content="https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Pod生命周期"><meta property="og:description" content="以三种探针为主线，理解 Pod 生命周期中的健康检查与流量切换。"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-06-01T00:00:00+00:00"><meta property="article:modified_time" content="2026-06-01T07:37:00+00:00"><meta property="article:tag" content="Kubernetes"><meta property="article:tag" content="Pod"><meta property="article:tag" content="LivenessProbe"><meta property="article:tag" content="ReadinessProbe"><meta property="article:tag" content="StartupProbe"><meta name=twitter:card content="summary"><meta name=twitter:title content="Pod生命周期"><meta name=twitter:description content="以三种探针为主线，理解 Pod 生命周期中的健康检查与流量切换。"><link rel=canonical href=https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Pod生命周期</h1><div class="text-xs antialiased opacity-60"><time>Jun 1, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><p>Pod 生命周期里，最容易影响线上稳定性的部分，往往不是“能不能启动”，而是<strong>探针配得对不对</strong>。</p><p>这篇就重点讲三个探针：</p><ul><li><code>livenessProbe</code></li><li><code>readinessProbe</code></li><li><code>startupProbe</code></li></ul><h2 id=先记住三句话>先记住三句话</h2><ol><li><code>livenessProbe</code> 失败：容器会被重启。</li><li><code>readinessProbe</code> 失败：容器不接流量，但不一定重启。</li><li><code>startupProbe</code> 生效期间：<code>liveness/readiness</code> 会被暂时屏蔽，给慢启动应用“保护期”。</li></ol><h2 id=三个探针分别解决什么问题>三个探针分别解决什么问题</h2><h3 id=1-livenessprobe进程还活着吗>1. livenessProbe：进程还“活着”吗</h3><p>它解决的是“程序假死”问题。</p><p>比如：进程还在，但线程卡死、连接池耗尽、接口永远不返回。这个时候容器看起来在运行，但其实已经不可用。</p><p><code>livenessProbe</code> 连续失败后，kubelet 会重启容器。</p><p>适合场景：</p><ul><li>进程可能进入死锁/卡死</li><li>希望通过重启自愈</li></ul><h3 id=2-readinessprobe现在能接流量吗>2. readinessProbe：现在能接流量吗</h3><p>它解决的是“服务可用性”问题。</p><p>即使进程活着，也可能暂时不能服务，比如：</p><ul><li>应用刚启动，缓存还没预热</li><li>依赖数据库暂时不可达</li><li>正在做优雅下线</li></ul><p><code>readinessProbe</code> 失败时，Pod 会从 Service Endpoints 里移除，不再接收新流量。</p><p>适合场景：</p><ul><li>有初始化过程</li><li>对外服务前有前置依赖</li><li>需要灰度或优雅摘流</li></ul><h3 id=3-startupprobe给慢启动应用留时间>3. startupProbe：给慢启动应用留时间</h3><p>它解决的是“启动慢导致误杀”的问题。</p><p>有些应用启动要几十秒甚至几分钟。如果只配 <code>livenessProbe</code>，很可能应用还没起来就被判死，不断重启，最终 <code>CrashLoopBackOff</code>。</p><p>配置 <code>startupProbe</code> 后，在它成功之前，<code>liveness/readiness</code> 不会生效。</p><p>适合场景：</p><ul><li>Java 大应用</li><li>需要加载大量模型/数据</li><li>启动期有迁移、预热等重操作</li></ul><h2 id=一个常用的探针组合示例>一个常用的探针组合示例</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>demo-app</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>demo-app</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>demo-app</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>app</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>demo/app:1.0.0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>startupProbe</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>httpGet</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/healthz</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>periodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>failureThreshold</span><span class=p>:</span><span class=w> </span><span class=m>24</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>livenessProbe</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>httpGet</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/healthz</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>initialDelaySeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>periodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>10</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>timeoutSeconds</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>failureThreshold</span><span class=p>:</span><span class=w> </span><span class=m>3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>readinessProbe</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>httpGet</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/ready</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>initialDelaySeconds</span><span class=p>:</span><span class=w> </span><span class=m>3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>periodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>timeoutSeconds</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>failureThreshold</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>successThreshold</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span></span></span></code></pre></div><p>这个配置表达的意思：</p><ul><li>先用 <code>startupProbe</code> 给启动期最多约 120 秒（<code>5 * 24</code>）保护时间。</li><li>启动完成后，<code>livenessProbe</code> 负责“活性检查”，失败就重启。</li><li><code>readinessProbe</code> 负责“是否接流量”，失败就摘流。</li></ul><h2 id=探针的三种实现方式>探针的三种实现方式</h2><p>K8s 探针常见检查方式：</p><ol><li><code>httpGet</code>：最常用，适合 Web 服务。</li><li><code>tcpSocket</code>：只检查端口可连通，不判断业务是否健康。</li><li><code>exec</code>：在容器内执行命令，适合无 HTTP 服务的场景。</li></ol><p>一般建议：</p><ul><li>有 HTTP 接口优先 <code>httpGet</code></li><li><code>tcpSocket</code> 只作为兜底</li><li><code>exec</code> 要注意命令耗时，避免探针本身变成负担</li></ul><h2 id=参数怎么理解最容易混>参数怎么理解（最容易混）</h2><ul><li><code>periodSeconds</code>：多久检查一次。</li><li><code>timeoutSeconds</code>：单次检查超时时间。</li><li><code>failureThreshold</code>：连续失败几次算失败。</li><li><code>successThreshold</code>：连续成功几次才算恢复（常用于 readiness）。</li><li><code>initialDelaySeconds</code>：容器启动后，延迟多久开始探测。</li></ul><p>可以粗略理解为：</p><ul><li>判定失败时间约为 <code>periodSeconds * failureThreshold</code></li><li>判定恢复时间约为 <code>periodSeconds * successThreshold</code></li></ul><h2 id=生命周期里的真实流量路径>生命周期里的真实流量路径</h2><p>结合探针看 Pod 生命周期，核心节点是：</p><ol><li>Pod 创建并启动容器。</li><li>启动阶段由 <code>startupProbe</code> 兜底，避免误重启。</li><li>启动完成后，<code>readinessProbe</code> 成功，Pod 开始接流量。</li><li>运行期间 <code>livenessProbe</code> 持续检查，异常则重启。</li><li><code>readinessProbe</code> 可在异常时先摘流，再恢复。</li></ol><p>这就是“先能启动，再能接流量，最后保证持续可用”的完整闭环。</p><h2 id=常见误区>常见误区</h2><ol><li><strong>只配 liveness，不配 readiness</strong><ul><li>结果：服务不健康时仍可能接流量，报错放大。</li></ul></li><li><strong>探针过于严格</strong><ul><li>结果：偶发抖动就被判失败，频繁重启或摘流。</li></ul></li><li><strong>慢启动应用没配 startup</strong><ul><li>结果：启动期被 liveness 连续误杀。</li></ul></li><li><strong>readiness 与真实可用条件不一致</strong><ul><li>结果：探针通过了，但业务仍不可用。</li></ul></li></ol><h2 id=排查探针问题的命令>排查探针问题的命令</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 看探针失败事件</span>
+</span></span><span class=line><span class=cl>kubectl describe pod &lt;pod-name&gt;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 看当前与上一轮日志（排查重启）</span>
+</span></span><span class=line><span class=cl>kubectl logs &lt;pod-name&gt;
+</span></span><span class=line><span class=cl>kubectl logs &lt;pod-name&gt; --previous
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 看 Pod 是否被摘流（是否 Ready）</span>
+</span></span><span class=line><span class=cl>kubectl get pod &lt;pod-name&gt; -o wide
+</span></span></code></pre></div><p>如果你看到反复 <code>Unhealthy</code>、<code>Back-off restarting failed container</code>，优先检查探针路径、端口、超时和阈值是否合理。</p><h2 id=一套简单配置建议>一套简单配置建议</h2><ul><li>对外服务：<code>readinessProbe</code> 必配。</li><li>可能假死：加 <code>livenessProbe</code>。</li><li>启动慢：加 <code>startupProbe</code>，并放宽启动窗口。</li><li>探针接口尽量轻量，不要做重查询。</li></ul><p>只要这三类探针职责清晰，Pod 生命周期里的大部分“起不来、接错流量、反复重启”问题都能明显减少。</p></section><footer class="mt-12 flex flex-wrap"><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/kubernetes>Kubernetes</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/pod>Pod</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/livenessprobe>livenessProbe</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/readinessprobe>readinessProbe</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/startupprobe>startupProbe</a></footer><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
