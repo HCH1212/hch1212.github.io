@@ -1,4 +1,60 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据库 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</link><description>Recent content in 数据库 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 19 Jun 2026 04:53:10 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml"/><item><title>acid 脏读、幻读、不可重复读 事务隔离级别</title><link>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</guid><description>&lt;h2 id="acid"&gt;acid&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据库 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</link><description>Recent content in 数据库 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 06 Jul 2026 03:59:09 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml"/><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
+&lt;p&gt;在处理海量数据去重或判断“是否存在”时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
+&lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的“误判率”。&lt;/p&gt;
+&lt;p&gt;它的回答只有两种可能：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;绝对不在集合中（100% 准确）。&lt;/li&gt;
+&lt;li&gt;可能在集合中（存在误判概率）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="原理与结构"&gt;原理与结构&lt;/h2&gt;
+&lt;p&gt;布隆过滤器的底层是一个位数组和一组无偏哈希函数。&lt;/p&gt;
+&lt;p&gt;工作流程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;初始化：所有位（Bit）置为 0。&lt;/li&gt;
+&lt;li&gt;添加元素：
+&lt;ul&gt;
+&lt;li&gt;将元素通过 k 个哈希函数计算，得到 k 个位置。&lt;/li&gt;
+&lt;li&gt;将位数组中对应的这些位置全部置为 1。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;查询元素：
+&lt;ul&gt;
+&lt;li&gt;将待查询元素通过同样的 k 个哈希函数计算。&lt;/li&gt;
+&lt;li&gt;如果所有位置都是 1：认为元素“可能存在”。&lt;/li&gt;
+&lt;li&gt;如果任一位置是 0：认为元素“绝对不存在”。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="应用场景"&gt;应用场景&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;防止缓存穿透：
+在访问数据库前，先通过布隆过滤器判断 Key 是否存在。
+如果不存在直接返回，避免无效请求击穿缓存直达数据库。&lt;/li&gt;
+&lt;li&gt;爬虫 URL 去重：
+存入数亿级 URL，快速判断某个网页是否已经爬取过，节省内存。&lt;/li&gt;
+&lt;li&gt;垃圾邮件过滤：
+从数十亿个垃圾邮件地址中快速匹配。&lt;/li&gt;
+&lt;li&gt;黑名单系统：
+如恶意 IP 过滤、敏感词检查。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="进阶版布隆过滤器的变体"&gt;进阶版：布隆过滤器的变体&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Counting Bloom Filter (可计数布隆过滤器)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;解决问题：不支持删除。&lt;/li&gt;
+&lt;li&gt;原理：将位数组的每个 Bit 换成一个 Counter (计数器)。&lt;/li&gt;
+&lt;li&gt;操作：添加时 +1，删除时 -1。虽然增加了空间占用，但支持了动态删除。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Cuckoo Filter (布谷鸟过滤器)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;优势：支持动态删除，且在误判率较低时，查询性能优于布隆过滤器，空间利用率更高。&lt;/li&gt;
+&lt;li&gt;原理：基于布谷鸟哈希算法，通过指纹（Fingerprint）存储元素特征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</description></item><item><title>acid 脏读、幻读、不可重复读 事务隔离级别</title><link>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</guid><description>&lt;h2 id="acid"&gt;acid&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;原子性（Atomicity）：事务是一个不可分割的工作单位，事务中包括的诸操作要么都做，要么都不做。&lt;/li&gt;
 &lt;li&gt;一致性（Consistency）：事务必须是数据库从一个一致性状态变到另一个一致性状态。&lt;/li&gt;
@@ -58,7 +114,10 @@
 &lt;ul&gt;
 &lt;li&gt;获取当前事务隔离级别：&lt;/li&gt;
 &lt;/ul&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;@@&lt;/span&gt;&lt;span class="n"&gt;tx_isolation&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- MySQL 8.0+
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;@@&lt;/span&gt;&lt;span class="n"&gt;transaction_isolation&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- MySQL 5.7 及以下
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;@@&lt;/span&gt;&lt;span class="n"&gt;tx_isolation&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
 &lt;li&gt;设置事务隔离级别：&lt;/li&gt;
 &lt;/ul&gt;
@@ -530,10 +589,10 @@ while(!acquireLock()){
 &lt;h3 id="集群模式缺点"&gt;集群模式缺点&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;单个节点的主从切换，仍会有瞬断情况。&lt;/li&gt;
-&lt;li&gt;集群模式需要依赖外部的服务发现组件，如Zookeeper，Consul。&lt;/li&gt;
+&lt;li&gt;集群模式不支持跨 slot 的多键操作，业务设计时需要合理规划 key 的分布。&lt;/li&gt;
 &lt;li&gt;集群模式需要做复杂的配置，如主从复制的配置，读写分离的配置等。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;参考: &lt;a href="https://juejin.cn/post/6844904191236767751"&gt;https://juejin.cn/post/6844904191236767751&lt;/a&gt;&lt;/p&gt;</description></item><item><title>redis 缓存雪崩、穿透、击穿</title><link>https://hch1212.github.io/posts/2026/01/redis-%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF/</guid><description>&lt;h2 id="缓存的使用"&gt;缓存的使用&lt;/h2&gt;
+&lt;p&gt;参考：&lt;a href="https://juejin.cn/post/6844904191236767751"&gt;https://juejin.cn/post/6844904191236767751&lt;/a&gt;&lt;/p&gt;</description></item><item><title>redis 缓存雪崩、穿透、击穿</title><link>https://hch1212.github.io/posts/2026/01/redis-%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF/</guid><description>&lt;h2 id="缓存的使用"&gt;缓存的使用&lt;/h2&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;GetData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;key&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;// 先查询缓存&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;redisClient&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;key&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nf"&gt;Result&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
@@ -758,7 +817,7 @@ while(!acquireLock()){
 &lt;p&gt;&lt;strong&gt;锁机制在不同隔离级别下的应用：&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>什么是RedLock</title><link>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</guid><description>&lt;h2 id="什么是redlock红锁"&gt;什么是RedLock（红锁）&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;RedLock是一种分布式锁的实现算法，由Redis的创造者Antirez（Salvatore Sanfilippo）提出。这种算法旨在解决在分布式系统中安全地获取锁的问题，特别是在基于Redis这种内存数据结构服务器环境下。&lt;/li&gt;
-&lt;li&gt;RedLock提供了一种方法，用于在没有中心化锁服务的情况下，across多个Redis实例安全地协调锁。&lt;/li&gt;
+&lt;li&gt;RedLock提供了一种方法，用于在没有中心化锁服务的情况下，跨多个Redis实例安全地协调锁。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id="redlock算法的工作原理"&gt;RedLock算法的工作原理&lt;/h2&gt;
 &lt;ul&gt;
@@ -781,7 +840,34 @@ while(!acquireLock()){
 &lt;li&gt;性能考虑：RedLock算法需要与多个Redis实例通信，相比于单个Redis实例的锁，可能会有更高的延迟。&lt;/li&gt;
 &lt;li&gt;时间同步：RedLock算法的安全性部分依赖于参与的Redis实例之间的时间同步。时钟偏差可能会影响锁的安全性。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;参考：&lt;a href="https://cloud.tencent.com/developer/article/2390644"&gt;https://cloud.tencent.com/developer/article/2390644&lt;/a&gt;&lt;/p&gt;</description></item><item><title>缓存与数据库双写一致性</title><link>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</guid><description>&lt;h2 id="为什么不一致"&gt;为什么不一致&lt;/h2&gt;
+&lt;p&gt;参考：&lt;a href="https://cloud.tencent.com/developer/article/2390644"&gt;https://cloud.tencent.com/developer/article/2390644&lt;/a&gt;&lt;/p&gt;</description></item><item><title>抖音实现关注用户、关注列的视频流的数据库设计</title><link>https://hch1212.github.io/posts/2026/01/%E6%8A%96%E9%9F%B3%E5%AE%9E%E7%8E%B0%E5%85%B3%E6%B3%A8%E7%94%A8%E6%88%B7%E5%85%B3%E6%B3%A8%E5%88%97%E7%9A%84%E8%A7%86%E9%A2%91%E6%B5%81%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E6%8A%96%E9%9F%B3%E5%AE%9E%E7%8E%B0%E5%85%B3%E6%B3%A8%E7%94%A8%E6%88%B7%E5%85%B3%E6%B3%A8%E5%88%97%E7%9A%84%E8%A7%86%E9%A2%91%E6%B5%81%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/</guid><description>&lt;h2 id="一关注关系表设计"&gt;一、关注关系表设计&lt;/h2&gt;
+&lt;p&gt;关注关系表记录了用户之间的关注行为，是社交网络的基础。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TABLE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;user_follows&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;BIGINT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;PRIMARY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;KEY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;follower_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;BIGINT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;COMMENT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;关注者ID&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;following_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;BIGINT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;COMMENT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;被关注者ID&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;created_at&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TIMESTAMP&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DEFAULT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;CURRENT_TIMESTAMP&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;COMMENT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;关注时间&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;TINYINT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DEFAULT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;COMMENT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;关注状态: 1=正常, 0=已取消&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INDEX&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;idx_follower&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;follower_id&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INDEX&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;idx_following&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;following_id&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;UNIQUE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;KEY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;uniq_follow&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;follower_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;following_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="核心索引分析"&gt;核心索引分析&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;用户关注列表查询&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;following_id&lt;/span&gt;&lt;span class="w"&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;user_follows&lt;/span&gt;&lt;span class="w"&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;follower_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;ORDER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;BY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;created_at&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="w"&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;LIMIT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;使用&lt;code&gt;idx_follower (follower_id)&lt;/code&gt;索引，可快速定位用户的所有关注记录&lt;/li&gt;
+&lt;li&gt;按关注时间倒序排列，支持最新关注优先展示&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;用户粉丝列表查询&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>缓存与数据库双写一致性</title><link>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</guid><description>&lt;h2 id="为什么不一致"&gt;为什么不一致&lt;/h2&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/db1.png" alt="img"&gt;&lt;/p&gt;
 &lt;h2 id="缓存与数据库双写一致性方案"&gt;缓存与数据库双写一致性方案&lt;/h2&gt;
 &lt;h3 id="1-更新数据库之后删除缓存解决部分不一致"&gt;1. 更新数据库之后删除缓存（解决部分不一致）&lt;/h3&gt;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Replication on giftiaのblog</title><link>https://hch1212.github.io/tags/replication/</link><description>Recent content in Replication on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 19 Jun 2026 04:53:10 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/replication/index.xml" rel="self" type="application/rss+xml"/><item><title>redis 主从、哨兵、集群</title><link>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</guid><description>&lt;h2 id="主从模式"&gt;主从模式&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Replication on giftiaのblog</title><link>https://hch1212.github.io/tags/replication/</link><description>Recent content in Replication on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 06 Jul 2026 03:59:09 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/replication/index.xml" rel="self" type="application/rss+xml"/><item><title>redis 主从、哨兵、集群</title><link>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</guid><description>&lt;h2 id="主从模式"&gt;主从模式&lt;/h2&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/redis1.png" alt="img"&gt;&lt;/p&gt;
 &lt;h3 id="主从模式优点"&gt;主从模式优点&lt;/h3&gt;
 &lt;ul&gt;
@@ -38,7 +38,7 @@
 &lt;h3 id="集群模式缺点"&gt;集群模式缺点&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;单个节点的主从切换，仍会有瞬断情况。&lt;/li&gt;
-&lt;li&gt;集群模式需要依赖外部的服务发现组件，如Zookeeper，Consul。&lt;/li&gt;
+&lt;li&gt;集群模式不支持跨 slot 的多键操作，业务设计时需要合理规划 key 的分布。&lt;/li&gt;
 &lt;li&gt;集群模式需要做复杂的配置，如主从复制的配置，读写分离的配置等。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;参考: &lt;a href="https://juejin.cn/post/6844904191236767751"&gt;https://juejin.cn/post/6844904191236767751&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;参考：&lt;a href="https://juejin.cn/post/6844904191236767751"&gt;https://juejin.cn/post/6844904191236767751&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>
