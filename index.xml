@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 06 Jul 2026 03:59:09 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>项目推荐</title><link>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</link><pubDate>Mon, 06 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</guid><description>&lt;h2 id="1-skills-技能库"&gt;1. Skills 技能库&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 06 Jul 2026 04:16:32 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>项目推荐</title><link>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</link><pubDate>Mon, 06 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</guid><description>&lt;h2 id="1-skills-技能库"&gt;1. Skills 技能库&lt;/h2&gt;
 &lt;table&gt;
  &lt;thead&gt;
  &lt;tr&gt;
@@ -6416,6 +6416,12 @@ touch docker-compose.yaml
  width: 100%;
  border-radius: 8px;
  object-fit: cover;
+ transition: transform 0.3s ease, box-shadow 0.3s ease;
+ cursor: pointer;
+}
+.gallery-grid img:hover {
+ transform: scale(1.05);
+ box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 &lt;/style&gt;
 &lt;div class="gallery-grid"&gt;
@@ -6521,7 +6527,60 @@ touch docker-compose.yaml
 &lt;/ul&gt;
 &lt;blockquote&gt;
 &lt;p&gt;欢迎在评论区或通过邮件申请交换友链。&lt;/p&gt;
-&lt;/blockquote&gt;</description></item><item><title>Loves</title><link>https://hch1212.github.io/loves/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/loves/</guid><description>&lt;h3 id="anime"&gt;anime&lt;/h3&gt;
+&lt;/blockquote&gt;</description></item><item><title>Loves</title><link>https://hch1212.github.io/loves/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/loves/</guid><description>&lt;style&gt;
+.loves-category details {
+ border: 1px solid #e5e7eb;
+ border-radius: 8px;
+ overflow: hidden;
+ margin-bottom: 12px;
+}
+.loves-category summary {
+ padding: 10px 16px;
+ font-weight: 600;
+ cursor: pointer;
+ user-select: none;
+ background: #f9fafb;
+ transition: background 0.2s;
+ list-style: none;
+}
+.loves-category summary::-webkit-details-marker {
+ display: none;
+}
+.loves-category summary:hover {
+ background: #f3f4f6;
+}
+.loves-category summary::before {
+ content: "▸";
+ display: inline-block;
+ margin-right: 8px;
+ transition: transform 0.2s;
+ font-size: 0.8em;
+ color: #9ca3af;
+}
+.loves-category details[open] &gt; summary::before {
+ transform: rotate(90deg);
+}
+.loves-category .count {
+ font-weight: 400;
+ color: #9ca3af;
+ margin-left: 6px;
+ font-size: 0.9em;
+}
+.loves-category .list {
+ padding: 8px 16px 12px 16px;
+}
+.loves-category .list ul {
+ margin: 0;
+ padding-left: 20px;
+}
+.loves-category .list li {
+ margin: 3px 0;
+}
+&lt;/style&gt;
+&lt;div class="loves-category"&gt;
+&lt;details open&gt;
+&lt;summary&gt;anime &lt;span class="count"&gt;(59)&lt;/span&gt;&lt;/summary&gt;
+&lt;div class="list"&gt;
 &lt;ul&gt;
 &lt;li&gt;可塑性记忆（最喜欢艾拉了！）&lt;/li&gt;
 &lt;li&gt;亚托莉&lt;/li&gt;
@@ -6584,7 +6643,11 @@ touch docker-compose.yaml
 &lt;li&gt;赛博朋克&lt;/li&gt;
 &lt;li&gt;天国大魔境&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id="anime-movie"&gt;anime movie&lt;/h3&gt;
+&lt;/div&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;anime movie &lt;span class="count"&gt;(16)&lt;/span&gt;&lt;/summary&gt;
+&lt;div class="list"&gt;
 &lt;ul&gt;
 &lt;li&gt;天气之子&lt;/li&gt;
 &lt;li&gt;你的名字&lt;/li&gt;
@@ -6603,7 +6666,11 @@ touch docker-compose.yaml
 &lt;li&gt;超时空辉夜姬&lt;/li&gt;
 &lt;li&gt;若能与你共乘海浪之上&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id="cn-anime"&gt;cn anime&lt;/h3&gt;
+&lt;/div&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;cn anime &lt;span class="count"&gt;(5)&lt;/span&gt;&lt;/summary&gt;
+&lt;div class="list"&gt;
 &lt;ul&gt;
 &lt;li&gt;龙族&lt;/li&gt;
 &lt;li&gt;狐妖小红娘&lt;/li&gt;
@@ -6611,7 +6678,11 @@ touch docker-compose.yaml
 &lt;li&gt;尸兄&lt;/li&gt;
 &lt;li&gt;王牌御史&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id="galgame"&gt;galgame&lt;/h3&gt;
+&lt;/div&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;galgame &lt;span class="count"&gt;(22)&lt;/span&gt;&lt;/summary&gt;
+&lt;div class="list"&gt;
 &lt;ul&gt;
 &lt;li&gt;可塑性记忆&lt;/li&gt;
 &lt;li&gt;亚托莉&lt;/li&gt;
@@ -6635,4 +6706,7 @@ touch docker-compose.yaml
 &lt;li&gt;君与彼女与彼女之恋&lt;/li&gt;
 &lt;li&gt;为主人献上圣罗的甜蜜侍奉&lt;/li&gt;
 &lt;li&gt;夏日口袋&lt;/li&gt;
-&lt;/ul&gt;</description></item></channel></rss>
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/details&gt;
+&lt;/div&gt;</description></item></channel></rss>
