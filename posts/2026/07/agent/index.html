@@ -1,0 +1,89 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Agent - giftiaのblog</title><meta name=theme-color><meta name=description content='Agent 是目前 LLM 应用最核心的范式。简单说，Agent = LLM + 工具 + 自主决策循环。
+但围绕 Agent 衍生了大量概念——Function Call、MCP、Skills、A2A，很多人搞不清它们分别解决什么问题。这篇就来把这些概念逐一理清。
+Agent 是什么
+一句话定义：让 LLM 在循环中自主调用工具完成任务。
+传统 LLM 使用方式是你问我答，一轮结束。Agent 则是：
+
+接收任务
+自己判断需要什么工具
+调用工具获取结果
+根据结果决定下一步
+重复直到任务完成
+
+关键区别在于 &ldquo;自主决策&rdquo;——LLM 自己决定什么时候停、什么时候继续、调用什么工具。
+Agent 和 Workflow 的区别
+这是最容易混淆的两个概念：
+
+  
+      
+          对比维度
+          Agent
+          Workflow
+      
+  
+  
+      
+          决策方式
+          LLM 自主判断下一步
+          预定义步骤，按图执行
+      
+      
+          灵活性
+          高，可应对未知情况
+          低，只能走固定路径
+      
+      
+          适用场景
+          开放式任务（调研、编码）
+          确定性流程（审批、ETL）
+      
+      
+          可控性
+          较低，结果不完全可预测
+          高，每一步可预期
+      
+  
+
+可以这么理解：
+
+Workflow 是"流程图"，你有几条路，都画好了，LLM 只是其中的一个节点。
+Agent 是"自主雇员"，你给目标和工具，它自己想办法。
+
+实际项目中两者经常混用：用 Workflow 做主干流程保证可控，关键节点嵌入 Agent 处理灵活子任务。
+Agent 工作模式
+Agent 工作模式决定了"怎么决策、怎么执行"。常见五种：
+1. ReAct
+最经典的"边走边看"模式——想一步、做一步、看结果、再想：'><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Agent"><meta itemprop=description content="从 Function Call 到 A2A，理清 Agent 的核心概念与生态协议。"><meta itemprop=datePublished content="2026-07-09T00:00:00+00:00"><meta itemprop=dateModified content="2026-07-09T08:11:55+00:00"><meta itemprop=wordCount content="390"><meta itemprop=keywords content="Agent,LLM,Function Call,MCP,A2A"><meta property="og:url" content="https://hch1212.github.io/posts/2026/07/agent/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Agent"><meta property="og:description" content="从 Function Call 到 A2A，理清 Agent 的核心概念与生态协议。"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-07-09T00:00:00+00:00"><meta property="article:modified_time" content="2026-07-09T08:11:55+00:00"><meta property="article:tag" content="Agent"><meta property="article:tag" content="LLM"><meta property="article:tag" content="Function Call"><meta property="article:tag" content="MCP"><meta property="article:tag" content="A2A"><meta name=twitter:card content="summary"><meta name=twitter:title content="Agent"><meta name=twitter:description content="从 Function Call 到 A2A，理清 Agent 的核心概念与生态协议。"><link rel=canonical href=https://hch1212.github.io/posts/2026/07/agent/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Agent</h1><div class="text-xs antialiased opacity-60"><time>Jul 9, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><p>Agent 是目前 LLM 应用最核心的范式。简单说，<strong>Agent = LLM + 工具 + 自主决策循环</strong>。</p><p>但围绕 Agent 衍生了大量概念——Function Call、MCP、Skills、A2A，很多人搞不清它们分别解决什么问题。这篇就来把这些概念逐一理清。</p><h2 id=agent-是什么>Agent 是什么</h2><p>一句话定义：<strong>让 LLM 在循环中自主调用工具完成任务</strong>。</p><p>传统 LLM 使用方式是你问我答，一轮结束。Agent 则是：</p><ol><li>接收任务</li><li>自己判断需要什么工具</li><li>调用工具获取结果</li><li>根据结果决定下一步</li><li>重复直到任务完成</li></ol><p>关键区别在于 <strong>&ldquo;自主决策&rdquo;</strong>——LLM 自己决定什么时候停、什么时候继续、调用什么工具。</p><h2 id=agent-和-workflow-的区别>Agent 和 Workflow 的区别</h2><p>这是最容易混淆的两个概念：</p><table><thead><tr><th>对比维度</th><th>Agent</th><th>Workflow</th></tr></thead><tbody><tr><td>决策方式</td><td>LLM 自主判断下一步</td><td>预定义步骤，按图执行</td></tr><tr><td>灵活性</td><td>高，可应对未知情况</td><td>低，只能走固定路径</td></tr><tr><td>适用场景</td><td>开放式任务（调研、编码）</td><td>确定性流程（审批、ETL）</td></tr><tr><td>可控性</td><td>较低，结果不完全可预测</td><td>高，每一步可预期</td></tr></tbody></table><p>可以这么理解：</p><ul><li><strong>Workflow</strong> 是"流程图"，你有几条路，都画好了，LLM 只是其中的一个节点。</li><li><strong>Agent</strong> 是"自主雇员"，你给目标和工具，它自己想办法。</li></ul><p>实际项目中两者经常混用：用 Workflow 做主干流程保证可控，关键节点嵌入 Agent 处理灵活子任务。</p><h2 id=agent-工作模式>Agent 工作模式</h2><p>Agent 工作模式决定了"怎么决策、怎么执行"。常见五种：</p><h3 id=1-react>1. ReAct</h3><p>最经典的"边走边看"模式——想一步、做一步、看结果、再想：</p><pre tabindex=0><code>观察 → 思考 → 行动 → 观察 → 思考 → 行动 → ...
+</code></pre><p>适合动态探索型任务，代价是每步都要等 LLM 推理，串行慢。</p><h3 id=2-plan-and-execute>2. Plan-and-Execute</h3><p>先出完整计划再执行：&ldquo;先画地图再走路&rdquo;。</p><pre tabindex=0><code>生成计划 → 执行步骤 1 → 执行步骤 2 → ... → 完成
+</code></pre><p>全局观好，但计划是静态的，遇意外不能灵活调整。</p><h3 id=3-rewoo>3. ReWOO</h3><p>把推理和执行拆分：一次性规划所有工具调用，然后批量并行执行，最后汇总。减少 LLM 推理轮次，适合工具调用间无依赖的场景。</p><h3 id=4-llm-compiler>4. LLM Compiler</h3><p>ReWOO 的进阶版——LLM 生成 DAG 描述工具调用依赖关系，最大化并行：</p><pre tabindex=0><code>A（查天气）──┐
+B（查日历）──┼──→ D（汇总建议）
+C（查路况）──┘
+</code></pre><h3 id=5-reflexion>5. Reflexion</h3><p>在 ReAct 基础上加"反思-重试"闭环：执行完后评估结果，不满足则分析失败原因再重试，适合对质量要求高的任务。</p><h3 id=一句话选型>一句话选型</h3><table><thead><tr><th>模式</th><th>特点</th><th>一句话</th></tr></thead><tbody><tr><td>ReAct</td><td>串行、灵活</td><td>走一步看一步</td></tr><tr><td>Plan-and-Execute</td><td>串行、可预见</td><td>先画地图再走</td></tr><tr><td>ReWOO</td><td>并行、独立</td><td>一次规划批量执行</td></tr><tr><td>LLM Compiler</td><td>并行、有依赖</td><td>编译成 DAG 再跑</td></tr><tr><td>Reflexion</td><td>重试、高质量</td><td>不满意就反思重来</td></tr></tbody></table><p>实际框架通常是组合使用：Plan-and-Execute 定主流程，ReAct 执行节点，Reflexion 兜底重试。</p><h2 id=function-call>Function Call</h2><p><strong>Function Call 是 Agent 调用工具的机制。</strong></p><p>LLM 本身不能执行代码、不能查数据库、不能发 HTTP 请求。Function Call 让 LLM 能够"告诉系统"：我想调用这个函数，参数是这个。</p><p>工作流程：</p><pre tabindex=0><code>User: &#34;上海今天天气怎么样？&#34;
+
+LLM 输出（不是最终回答）:
+{
+  &#34;function&#34;: &#34;get_weather&#34;,
+  &#34;parameters&#34;: { &#34;city&#34;: &#34;上海&#34; }
+}
+
+系统执行 get_weather(&#34;上海&#34;)，把结果返回给 LLM
+
+LLM 基于天气数据生成最终回答
+</code></pre><p>核心理解：</p><ul><li>Function Call 不是 LLM 在执行函数，是 LLM 在 <strong>声明意图</strong></li><li>实际执行由宿主程序（你的代码 / Agent 框架）完成</li><li>LLM 拿到执行结果后继续推理，可能再次发起 Function Call</li></ul><p><strong>注意</strong>：Function Call 只是工具调用协议的一种具体实现（如 OpenAI 的 Function Calling API），不是唯一方案。</p><h2 id=mcp>MCP</h2><p><strong>MCP（Model Context Protocol）是工具和 LLM 之间的标准化通信协议。</strong></p><p>Function Call 解决了"怎么调用"，但没解决"工具从哪来、怎么统一管理"。MCP 就是来做这件事的。</p><p>类比理解：</p><ul><li>Function Call = 打电话的机制（拨号、通话）</li><li>MCP = 统一电话号码本（所有工具按同一标准接入）</li></ul><p>MCP 的架构：</p><pre tabindex=0><code>LLM (Client) ←→ MCP Client ←→ MCP Server ←→ 实际工具/数据源
+</code></pre><ul><li><strong>MCP Server</strong>：封装工具，暴露标准接口</li><li><strong>MCP Client</strong>：在 LLM 侧发现并调用工具</li><li>协议统一后，换工具不需要改 LLM 侧的调用逻辑</li></ul><p>实际价值：一次接入 MCP，所有兼容 MCP 的 LLM 客户端都能用你的工具。</p><h2 id=skills>Skills</h2><p><strong>Skills 是 Agent 的能力包，包含提示词、工具、知识的组合。</strong></p><p>Skill 不仅仅是一个 Function Call 工具。它通常包含：</p><ul><li><strong>提示词模板</strong>：告诉 LLM 在什么场景下该怎么做</li><li><strong>工具绑定</strong>：这个 Skill 能调用哪些 Function / MCP 工具</li><li><strong>领域知识</strong>：特定场景下的上下文信息</li></ul><p>可以这样理解层级关系：</p><pre tabindex=0><code>Agent
+  ├── Skill A（例如：代码审查）
+  │     ├── 提示词：审查规则
+  │     └── 工具：读文件、Git diff
+  ├── Skill B（例如：生成 PPT）
+  │     ├── 提示词：排版规范
+  │     └── 工具：python-pptx 操作
+  └── ...
+</code></pre><p>Skills 解决了"Agent 能力复用"的问题——不用每次都从零写 prompt。</p><h2 id=a2a>A2A</h2><p><strong>A2A（Agent-to-Agent）是 Agent 之间的协作协议。</strong></p><p>当任务复杂到单一 Agent 搞不定时，就需要多个 Agent 协作。A2A 定义了 Agent 之间如何通信：</p><ul><li><strong>任务分发</strong>：主 Agent 拆解任务，分发给子 Agent</li><li><strong>消息传递</strong>：Agent 之间传递上下文和结果</li><li><strong>状态同步</strong>：多个 Agent 共享进展信息</li></ul><p>常见模式：</p><pre tabindex=0><code>主 Agent（协调者）
+  ├── 子 Agent 1：负责后端代码
+  ├── 子 Agent 2：负责前端代码
+  └── 子 Agent 3：负责代码审查
+</code></pre><p>A2A 当前还没有像 MCP 那样成熟的标准协议，更多是各 Agent 框架自行实现的协作机制。但它解决的问题是明确的：<strong>单个 Agent 有上下文窗口、专注度的上限，多 Agent 协作是规模化必经之路。</strong></p><h2 id=核心总结>核心总结</h2><ol><li><strong>Agent</strong> 是顶层范式，让 LLM 在循环中自主决策</li><li><strong>Function Call</strong> 是工具调用的具体机制</li><li><strong>MCP</strong> 让工具接入标准化，一次开发到处使用</li><li><strong>Skills</strong> 封装经验为可复用能力包</li><li><strong>A2A</strong> 解决多 Agent 协作问题</li></ol><h2 id=什么时候该用-agent>什么时候该用 Agent</h2><p>并不是所有场景都需要 Agent：</p><ul><li><strong>简单问答 / 分类 / 摘要</strong>：单轮 LLM 调用就够了，不需要 Agent</li><li><strong>固定流程（审批 / ETL）</strong>：用 Workflow 更可靠</li><li><strong>开放式任务（调研 / 编码 / 排查）</strong>：Agent 价值最大</li></ul><p>原则：<strong>能用确定性逻辑解决的问题，不要引入不确定性</strong>。Agent 的灵活性是用可控性换来的，在需要它的时候再用。</p></section><footer class="mt-12 flex flex-wrap"><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/agent>Agent</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/llm>LLM</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/function-call>Function Call</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/mcp>MCP</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/a2a>A2A</a></footer><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
