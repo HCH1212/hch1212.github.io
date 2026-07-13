@@ -1,0 +1,123 @@
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Countdown轮询+看门狗兜底 - giftiaのblog</title><meta name=theme-color><meta name=description content='为什么需要轮询
+异步任务最常见的场景是：提交一个耗时操作，然后等它完成。但有一种场景更棘手——你不知道要等多久。
+比如：调用一个异步 API 提交工单，对方处理完回调通知你。优雅的做法是起个 Webhook 接口被动接收回调。但生产环境里回调可能丢失（对方没发、网络抖动、你的服务刚好重启），于是你还需要一个主动轮询的兜底机制。
+轮询最粗暴的写法：
+@app.task
+def poll_task(task_id):
+    # 轮询等结果，最多等 5 分钟
+    deadline = time.time() + 300
+    while time.time() < deadline:
+        result = check_external_api(task_id)
+        if result:
+            handle_result(result)
+            return
+        time.sleep(10)  # 阻塞 Worker 进程长达 5 分钟
+    raise TimeoutError("轮询超时")
+time.sleep(10) 会死死占住一个 Worker 进程。如果有 10 个这样的轮询任务同时跑，10 个 Worker 全部被堵死，其他正常任务全部排队等候——这就是经典的"轮询阻塞"。
+Countdown 轮询：非阻塞重试
+Celery 的 countdown 参数可以让任务延迟执行而不占用 Worker：
+@app.task(bind=True, max_retries=30)
+def poll_with_countdown(self, task_id, deadline=None):
+    """countdown 轮询：每次检查后释放 Worker，10 秒后再来"""
+    if deadline is None:
+        deadline = time.time() + 300  # 默认等 5 分钟
+    
+    if time.time() > deadline:
+        raise self.MaxRetriesExceededError(
+            f"任务 {task_id} 轮询超时"
+        )
+    
+    result = check_external_api(task_id)
+    if result:
+        handle_result(result)
+        return  # 完成
+    
+    # 未就绪，10 秒后重试，Worker 立即释放处理其他任务
+    raise self.retry(countdown=10)
+关键在于 self.retry(countdown=10)——它告诉 Broker：&ldquo;这个任务 10 秒后再投递一次&rdquo;，当前 Worker 立即释放去处理下一个任务。'><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Countdown轮询+看门狗兜底"><meta itemprop=description content="异步任务中countdown轮询与看门狗兜底机制的设计与实战"><meta itemprop=datePublished content="2026-07-13T00:00:00+00:00"><meta itemprop=dateModified content="2026-07-13T06:53:04+00:00"><meta itemprop=wordCount content="264"><meta itemprop=keywords content="Celery,异步任务,设计模式,可靠性,看门狗"><meta property="og:url" content="https://hch1212.github.io/posts/2026/07/countdown%E8%BD%AE%E8%AF%A2-%E7%9C%8B%E9%97%A8%E7%8B%97%E5%85%9C%E5%BA%95/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Countdown轮询+看门狗兜底"><meta property="og:description" content="异步任务中countdown轮询与看门狗兜底机制的设计与实战"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-07-13T00:00:00+00:00"><meta property="article:modified_time" content="2026-07-13T06:53:04+00:00"><meta property="article:tag" content="Celery"><meta property="article:tag" content="异步任务"><meta property="article:tag" content="设计模式"><meta property="article:tag" content="可靠性"><meta property="article:tag" content="看门狗"><meta name=twitter:card content="summary"><meta name=twitter:title content="Countdown轮询+看门狗兜底"><meta name=twitter:description content="异步任务中countdown轮询与看门狗兜底机制的设计与实战"><link rel=canonical href=https://hch1212.github.io/posts/2026/07/countdown%E8%BD%AE%E8%AF%A2-%E7%9C%8B%E9%97%A8%E7%8B%97%E5%85%9C%E5%BA%95/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+<a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Countdown轮询+看门狗兜底</h1><div class="text-xs antialiased opacity-60"><time>Jul 13, 2026</time><span class=mx-1>&#183;</span>
+<span>giftia</span></div></header><section><h2 id=为什么需要轮询>为什么需要轮询</h2><p>异步任务最常见的场景是：提交一个耗时操作，然后等它完成。但有一种场景更棘手——<strong>你不知道要等多久</strong>。</p><p>比如：调用一个异步 API 提交工单，对方处理完回调通知你。优雅的做法是起个 Webhook 接口被动接收回调。但生产环境里回调可能丢失（对方没发、网络抖动、你的服务刚好重启），于是你还需要一个主动轮询的兜底机制。</p><p>轮询最粗暴的写法：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=nd>@app.task</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>poll_task</span><span class=p>(</span><span class=n>task_id</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=c1># 轮询等结果，最多等 5 分钟</span>
+</span></span><span class=line><span class=cl>    <span class=n>deadline</span> <span class=o>=</span> <span class=n>time</span><span class=o>.</span><span class=n>time</span><span class=p>()</span> <span class=o>+</span> <span class=mi>300</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>time</span><span class=o>.</span><span class=n>time</span><span class=p>()</span> <span class=o>&lt;</span> <span class=n>deadline</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>result</span> <span class=o>=</span> <span class=n>check_external_api</span><span class=p>(</span><span class=n>task_id</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>result</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>handle_result</span><span class=p>(</span><span class=n>result</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span>
+</span></span><span class=line><span class=cl>        <span class=n>time</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>10</span><span class=p>)</span>  <span class=c1># 阻塞 Worker 进程长达 5 分钟</span>
+</span></span><span class=line><span class=cl>    <span class=k>raise</span> <span class=ne>TimeoutError</span><span class=p>(</span><span class=s2>&#34;轮询超时&#34;</span><span class=p>)</span>
+</span></span></code></pre></div><p><code>time.sleep(10)</code> 会死死占住一个 Worker 进程。如果有 10 个这样的轮询任务同时跑，10 个 Worker 全部被堵死，其他正常任务全部排队等候——这就是经典的"轮询阻塞"。</p><h2 id=countdown-轮询非阻塞重试>Countdown 轮询：非阻塞重试</h2><p>Celery 的 <code>countdown</code> 参数可以让任务延迟执行而不占用 Worker：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=nd>@app.task</span><span class=p>(</span><span class=n>bind</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>max_retries</span><span class=o>=</span><span class=mi>30</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>poll_with_countdown</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>task_id</span><span class=p>,</span> <span class=n>deadline</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;countdown 轮询：每次检查后释放 Worker，10 秒后再来&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=n>deadline</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>deadline</span> <span class=o>=</span> <span class=n>time</span><span class=o>.</span><span class=n>time</span><span class=p>()</span> <span class=o>+</span> <span class=mi>300</span>  <span class=c1># 默认等 5 分钟</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=n>time</span><span class=o>.</span><span class=n>time</span><span class=p>()</span> <span class=o>&gt;</span> <span class=n>deadline</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=k>raise</span> <span class=bp>self</span><span class=o>.</span><span class=n>MaxRetriesExceededError</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>            <span class=sa>f</span><span class=s2>&#34;任务 </span><span class=si>{</span><span class=n>task_id</span><span class=si>}</span><span class=s2> 轮询超时&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=n>result</span> <span class=o>=</span> <span class=n>check_external_api</span><span class=p>(</span><span class=n>task_id</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=n>result</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>handle_result</span><span class=p>(</span><span class=n>result</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span>  <span class=c1># 完成</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 未就绪，10 秒后重试，Worker 立即释放处理其他任务</span>
+</span></span><span class=line><span class=cl>    <span class=k>raise</span> <span class=bp>self</span><span class=o>.</span><span class=n>retry</span><span class=p>(</span><span class=n>countdown</span><span class=o>=</span><span class=mi>10</span><span class=p>)</span>
+</span></span></code></pre></div><p>关键在于 <code>self.retry(countdown=10)</code>——它告诉 Broker：&ldquo;这个任务 10 秒后再投递一次&rdquo;，当前 Worker <strong>立即释放</strong>去处理下一个任务。</p><p>相比 <code>time.sleep</code>：</p><table><thead><tr><th>方式</th><th>Worker 占用</th><th>10 并发时影响</th></tr></thead><tbody><tr><td><code>time.sleep(10)</code> 循环</td><td>持续占用</td><td>堵死 10 个 Worker</td></tr><tr><td><code>countdown</code> 重试</td><td>仅占用瞬间</td><td>几乎无影响</td></tr></tbody></table><h2 id=看门狗兜底>看门狗兜底</h2><p><code>countdown</code> 解决了阻塞问题，但引入了新风险：重试依赖 Celery 自身的重试机制，如果任务意外丢失（Broker 挂了、任务被误删），重试链就断了。</p><p>看门狗的作用：<strong>独立于任务本身的监控者</strong>，定期扫描"卡住的中间状态"，推动它们走向终态。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=nd>@app.task</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>watchdog_scan</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;看门狗：扫描处于中间状态超时的任务，强制推进&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>stale_threshold</span> <span class=o>=</span> <span class=n>timezone</span><span class=o>.</span><span class=n>now</span><span class=p>()</span> <span class=o>-</span> <span class=n>timedelta</span><span class=p>(</span><span class=n>minutes</span><span class=o>=</span><span class=mi>10</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># 查找创建超过 10 分钟仍在&#34;处理中&#34;的任务</span>
+</span></span><span class=line><span class=cl>    <span class=n>stuck_tasks</span> <span class=o>=</span> <span class=n>TaskRecord</span><span class=o>.</span><span class=n>objects</span><span class=o>.</span><span class=n>filter</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>        <span class=n>status</span><span class=o>=</span><span class=n>TaskStatus</span><span class=o>.</span><span class=n>PROCESSING</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=n>created_at__lt</span><span class=o>=</span><span class=n>stale_threshold</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>task</span> <span class=ow>in</span> <span class=n>stuck_tasks</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=k>try</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=c1># 重新查询外部状态</span>
+</span></span><span class=line><span class=cl>            <span class=n>ext_result</span> <span class=o>=</span> <span class=n>check_external_api</span><span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>external_task_id</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=n>ext_result</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>                <span class=n>handle_result</span><span class=p>(</span><span class=n>task</span><span class=p>,</span> <span class=n>ext_result</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>else</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>                <span class=c1># 外部也没结果，标记失败，触发告警</span>
+</span></span><span class=line><span class=cl>                <span class=n>task</span><span class=o>.</span><span class=n>mark_failed</span><span class=p>(</span><span class=s2>&#34;看门狗超时&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=n>send_alert</span><span class=p>(</span><span class=sa>f</span><span class=s2>&#34;任务 </span><span class=si>{</span><span class=n>task</span><span class=o>.</span><span class=n>id</span><span class=si>}</span><span class=s2> 处理超时，已标记失败&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>logger</span><span class=o>.</span><span class=n>exception</span><span class=p>(</span><span class=sa>f</span><span class=s2>&#34;看门狗处理任务 </span><span class=si>{</span><span class=n>task</span><span class=o>.</span><span class=n>id</span><span class=si>}</span><span class=s2> 失败: </span><span class=si>{</span><span class=n>e</span><span class=si>}</span><span class=s2>&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=sa>f</span><span class=s2>&#34;看门狗扫描完成，处理 </span><span class=si>{</span><span class=nb>len</span><span class=p>(</span><span class=n>stuck_tasks</span><span class=p>)</span><span class=si>}</span><span class=s2> 个卡住任务&#34;</span><span class=p>)</span>
+</span></span></code></pre></div><p>配合 Celery Beat 定时调度：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># celery.py</span>
+</span></span><span class=line><span class=cl><span class=n>app</span><span class=o>.</span><span class=n>conf</span><span class=o>.</span><span class=n>beat_schedule</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=s1>&#39;watchdog-scan&#39;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;task&#39;</span><span class=p>:</span> <span class=s1>&#39;tasks.watchdog_scan&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;schedule&#39;</span><span class=p>:</span> <span class=mf>60.0</span><span class=p>,</span>  <span class=c1># 每分钟扫一次</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h2 id=完整模式>完整模式</h2><pre tabindex=0><code>                    ┌─────────────┐
+                    │  提交异步任务  │
+                    └──────┬──────┘
+                           │
+                           ▼
+              ┌────────────────────────┐
+              │  Task A (countdown=10)  │
+              │  check_external_api()   │
+              │  未就绪 → retry         │
+              └────────────┬───────────┘
+                           │ 重试链
+                           ▼
+              ┌────────────────────────┐
+              │  Task A (countdown=10)  │
+              │  check_external_api()   │
+              │  已就绪 → handle()      │
+              └────────────────────────┘
+
+             ═══════ 看门狗（独立） ═══════
+            每分钟扫描 PROCESSING 超时任务
+                    → 超时则标记失败/告警
+</code></pre><p>两层保障：</p><ol><li><strong>Countdown 轮询</strong>处理正常等待场景（对方 API 慢但会返回）</li><li><strong>看门狗兜底</strong>处理异常场景（重试链断裂、任务丢失、对方 API 彻底挂了）</li></ol><blockquote><p>看门狗不要和轮询任务同一个队列，避免队列阻塞时看门狗也一起被卡住。</p></blockquote></section><footer class="mt-12 flex flex-wrap"><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/celery>Celery</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1>异步任务</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F>设计模式</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E5%8F%AF%E9%9D%A0%E6%80%A7>可靠性</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E7%9C%8B%E9%97%A8%E7%8B%97>看门狗</a></footer><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+<a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
+<a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>
