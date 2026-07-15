@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>杂谈 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%9D%82%E8%B0%88/</link><description>Recent content in 杂谈 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 14 Jul 2026 09:14:00 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent</title><link>https://hch1212.github.io/posts/2026/07/agent/</link><pubDate>Thu, 09 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/agent/</guid><description>&lt;p&gt;Agent 是目前 LLM 应用最核心的范式。简单说，&lt;strong&gt;Agent = LLM + 工具 + 自主决策循环&lt;/strong&gt;。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>杂谈 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%9D%82%E8%B0%88/</link><description>Recent content in 杂谈 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 03:25:48 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent</title><link>https://hch1212.github.io/posts/2026/07/agent/</link><pubDate>Thu, 09 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/agent/</guid><description>&lt;p&gt;Agent 是目前 LLM 应用最核心的范式。简单说，&lt;strong&gt;Agent = LLM + 工具 + 自主决策循环&lt;/strong&gt;。&lt;/p&gt;
 &lt;p&gt;但围绕 Agent 衍生了大量概念——Function Call、MCP、Skills、A2A，很多人搞不清它们分别解决什么问题。这篇就来把这些概念逐一理清。&lt;/p&gt;
 &lt;h2 id="agent-是什么"&gt;Agent 是什么&lt;/h2&gt;
 &lt;p&gt;一句话定义：&lt;strong&gt;让 LLM 在循环中自主调用工具完成任务&lt;/strong&gt;。&lt;/p&gt;
@@ -53,82 +53,59 @@
 &lt;h2 id="agent-工作模式"&gt;Agent 工作模式&lt;/h2&gt;
 &lt;p&gt;Agent 工作模式决定了&amp;quot;怎么决策、怎么执行&amp;quot;。常见五种：&lt;/p&gt;
 &lt;h3 id="1-react"&gt;1. ReAct&lt;/h3&gt;
-&lt;p&gt;最经典的&amp;quot;边走边看&amp;quot;模式——想一步、做一步、看结果、再想：&lt;/p&gt;</description></item><item><title>项目推荐</title><link>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</link><pubDate>Mon, 06 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</guid><description>&lt;h2 id="1-skills-技能库"&gt;1. Skills 技能库&lt;/h2&gt;
+&lt;p&gt;最经典的&amp;quot;边走边看&amp;quot;模式——想一步、做一步、看结果、再想：&lt;/p&gt;</description></item><item><title>项目推荐</title><link>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</link><pubDate>Mon, 06 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/%E9%A1%B9%E7%9B%AE%E6%8E%A8%E8%8D%90/</guid><description>&lt;h2 id="skills-技能库"&gt;Skills 技能库&lt;/h2&gt;
 &lt;table&gt;
  &lt;thead&gt;
  &lt;tr&gt;
- &lt;th style="text-align: left"&gt;项目&lt;/th&gt;
- &lt;th style="text-align: left"&gt;简介&lt;/th&gt;
+ &lt;th&gt;项目&lt;/th&gt;
+ &lt;th&gt;简介&lt;/th&gt;
  &lt;/tr&gt;
  &lt;/thead&gt;
  &lt;tbody&gt;
  &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/obra/superpowers"&gt;superpowers&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;由 obra 开发的 AI 超能力技能集，提供一系列增强 AI Agent 能力的指令和工具&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://github.com/obra/superpowers"&gt;superpowers&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;AI 超能力技能集，增强 AI Agent 能力的指令和工具&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/qian-gugugaga/Character_Skill_Producer"&gt;Character_Skill_Producer&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;角色技能生成器，自动生成特定角色人设的技能包，适用于角色扮演场景&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://github.com/colbymchenry/codegraph"&gt;codegraph&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;代码知识图谱工具，静态分析构建调用关系图&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/JodieRuth/GalgameCharacterSkills"&gt;GalgameCharacterSkills&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;Galgame 角色技能库，为视觉小说/Galgame 角色定制的对话与行为技能&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://github.com/linshenkx/prompt-optimizer"&gt;prompt-optimizer&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;提示词优化工具，自动分析与改进 Prompt 质量&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/ly-xxx/ace-taffy-skill"&gt;ace-taffy-skill&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;基于 ACE 框架的 Taffy 技能包，专注于特定领域的任务处理与自动化&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://github.com/qian-gugugaga/Character_Skill_Producer"&gt;Character_Skill_Producer&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;角色技能生成器，自动生成特定角色人设技能包&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/colbymchenry/codegraph"&gt;codegraph&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;代码知识图谱工具，通过静态分析构建代码调用关系图，支持代码导航与影响分析&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://github.com/JodieRuth/GalgameCharacterSkills"&gt;GalgameCharacterSkills&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;Galgame 角色技能库，定制对话与行为技能&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;a href="https://github.com/ly-xxx/ace-taffy-skill"&gt;ace-taffy-skill&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;基于 ACE 框架的 Taffy 技能包&lt;/td&gt;
  &lt;/tr&gt;
  &lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="2-提示词工程"&gt;2. 提示词工程&lt;/h2&gt;
-&lt;table&gt;
- &lt;thead&gt;
- &lt;tr&gt;
- &lt;th style="text-align: left"&gt;项目&lt;/th&gt;
- &lt;th style="text-align: left"&gt;简介&lt;/th&gt;
- &lt;/tr&gt;
- &lt;/thead&gt;
- &lt;tbody&gt;
- &lt;tr&gt;
- &lt;td style="text-align: left"&gt;&lt;a href="https://github.com/linshenkx/prompt-optimizer"&gt;prompt-optimizer&lt;/a&gt;&lt;/td&gt;
- &lt;td style="text-align: left"&gt;提示词优化工具，自动分析与改进 Prompt 质量，提升 AI 输出的稳定性和准确性&lt;/td&gt;
- &lt;/tr&gt;
- &lt;/tbody&gt;
-&lt;/table&gt;</description></item><item><title>如何写提示词</title><link>https://hch1212.github.io/posts/2026/06/%E5%A6%82%E4%BD%95%E5%86%99%E6%8F%90%E7%A4%BA%E8%AF%8D/</link><pubDate>Thu, 04 Jun 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/06/%E5%A6%82%E4%BD%95%E5%86%99%E6%8F%90%E7%A4%BA%E8%AF%8D/</guid><description>&lt;h2 id="一些技巧"&gt;一些技巧&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;结构化&lt;/li&gt;
-&lt;/ol&gt;
+&lt;/table&gt;</description></item><item><title>如何写提示词</title><link>https://hch1212.github.io/posts/2026/06/%E5%A6%82%E4%BD%95%E5%86%99%E6%8F%90%E7%A4%BA%E8%AF%8D/</link><pubDate>Thu, 04 Jun 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/06/%E5%A6%82%E4%BD%95%E5%86%99%E6%8F%90%E7%A4%BA%E8%AF%8D/</guid><description>&lt;h2 id="结构化模板"&gt;结构化模板&lt;/h2&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-markdown" data-lang="markdown"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;角色：你是...
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;背景：
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;要求：
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;1. 
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;2. 
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;3. 
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;1.
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;2.
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;3.
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;限制：
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;输出示例：
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start="2"&gt;
-&lt;li&gt;
-&lt;p&gt;给出几个对话示例&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;约束（不要做什么）&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;指定输入输出格式（边界）&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;带上适合的上下文（背景）&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;复杂任务拆分或链式&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="核心技巧"&gt;核心技巧&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;给出对话示例&lt;/strong&gt;：用 few-shot 引导模型行为&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;约束（不要做什么）&lt;/strong&gt;：限制比指令更有效&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;指定输入输出格式&lt;/strong&gt;：明确边界&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;带上上下文&lt;/strong&gt;：提供相关背景信息&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;复杂任务拆分&lt;/strong&gt;：链式调用或分步执行&lt;/li&gt;
+&lt;/ul&gt;
 &lt;p&gt;参考：&lt;a href="https://www.promptingguide.ai/zh"&gt;https://www.promptingguide.ai/zh&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

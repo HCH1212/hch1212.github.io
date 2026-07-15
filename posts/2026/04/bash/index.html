@@ -1,53 +1,62 @@
-<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Bash - giftiaのblog</title><meta name=theme-color><meta name=description content='Bash 基础指南：从入门到实用
-Bash (Bourne Again SHell) 是大多数 Linux 和 macOS 系统的默认命令行解释器。它不仅是一个与系统交互的界面，也是一门强大的脚本语言。本文将带你快速掌握 Bash 的核心概念和实用技巧。
-1. 什么是 Bash？
-简单来说，Bash 就像一个翻译官。你输入人类可读的命令，Bash 将其翻译成操作系统能理解的指令并执行。
-2. 基础命令
-在开始编写脚本之前，我们需要熟悉一些最常用的基础命令：
+<!doctype html><html class="not-ready lg:text-base" style=--bg:#faf8f1 lang=zh-CN dir=ltr><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Bash - giftiaのblog</title><meta name=theme-color><meta name=description content='基础命令
 
-pwd: 显示当前所在目录的路径 (Print Working Directory)。
-ls: 列出当前目录下的文件和文件夹。
+pwd：显示当前目录路径
+ls：列出文件（-l 详细，-a 含隐藏）
+cd：切换目录（cd .. 上级）
+mkdir：创建目录
+rm：删除（-r 递归）
 
-ls -l: 详细列表格式。
-ls -a: 显示隐藏文件。
-
-
-cd: 切换目录 (Change Directory)。
-
-cd /var/log: 进入绝对路径。
-cd ..: 返回上一级目录。
-
-
-mkdir: 创建新目录。
-rm: 删除文件或目录。
-
-rm file.txt: 删除文件。
-rm -r folder: 递归删除目录及其内容。
-
-
-
-3. 变量
-Bash 中的变量不需要声明类型，直接赋值即可。
-定义和使用变量：
-# 定义变量（注意：等号两边不能有空格）
+变量
+# 等号两边不能有空格
 name="World"
-age=25
-
-# 使用变量（在变量名前加 $ 符号）
 echo "Hello, $name!"
-echo "I am $age years old."
-4. 条件判断
-Bash 使用 if 语句进行条件控制。'><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Bash"><meta itemprop=description content="Bash 基础指南：从入门到实用，涵盖基础命令、变量、条件判断、循环、函数及脚本编写。"><meta itemprop=datePublished content="2026-04-16T00:00:00+00:00"><meta itemprop=dateModified content="2026-07-14T09:14:00+00:00"><meta itemprop=wordCount content="276"><meta itemprop=keywords content="Bash,Linux,Shell,脚本"><meta property="og:url" content="https://hch1212.github.io/posts/2026/04/bash/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Bash"><meta property="og:description" content="Bash 基础指南：从入门到实用，涵盖基础命令、变量、条件判断、循环、函数及脚本编写。"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-04-16T00:00:00+00:00"><meta property="article:modified_time" content="2026-07-14T09:14:00+00:00"><meta property="article:tag" content="Bash"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Shell"><meta property="article:tag" content="脚本"><meta name=twitter:card content="summary"><meta name=twitter:title content="Bash"><meta name=twitter:description content="Bash 基础指南：从入门到实用，涵盖基础命令、变量、条件判断、循环、函数及脚本编写。"><link rel=canonical href=https://hch1212.github.io/posts/2026/04/bash/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
+条件判断
+常用比较符：-eq（等于）、-ne（不等于）、-gt（大于）、-lt（小于）。
+score=85
+if [ $score -ge 90 ]; then
+    echo "优秀"
+elif [ $score -ge 60 ]; then
+    echo "及格"
+else
+    echo "不及格"
+fi
+循环
+# for 循环
+for fruit in apple banana cherry; do
+    echo "I like $fruit"
+done
+
+# while 循环
+count=1
+while [ $count -le 3 ]; do
+    echo "Count is $count"
+    count=$((count + 1))
+done
+函数
+greet() {
+    echo "Hello, $1!"  # $1 为第一个参数
+}
+greet "Alice"
+管道与重定向
+# 重定向
+echo "hello" > file.txt   # 覆盖写入
+echo "world" >> file.txt  # 追加写入
+
+# 管道：前一个命令的输出作为后一个命令的输入
+ls -l | grep "txt"
+编写脚本
+#!/bin/bash
+echo "Starting..."
+date
+echo "Finished."
+chmod +x hello.sh
+./hello.sh
+'><meta name=author content="giftia"><link rel="preload stylesheet" as=style href=https://hch1212.github.io/main.min.css><link rel=preload as=image href=https://hch1212.github.io/theme.svg><link rel=preload as=image href=https://hch1212.github.io/images/giftia.png><link rel=preload as=image href=https://hch1212.github.io/github.svg><link rel=preload as=image href=https://hch1212.github.io/rss.svg><script defer src=https://hch1212.github.io/highlight.min.js onload=hljs.initHighlightingOnLoad()></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",()=>renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1}))</script><link rel=icon href=https://hch1212.github.io/favicon.ico><link rel=apple-touch-icon href=https://hch1212.github.io/apple-touch-icon.png><meta name=generator content="Hugo 0.154.1"><meta itemprop=name content="Bash"><meta itemprop=description content="Bash 基础速查：基础命令、变量、条件判断、循环、函数及脚本编写。"><meta itemprop=datePublished content="2026-04-16T00:00:00+00:00"><meta itemprop=dateModified content="2026-07-15T03:25:48+00:00"><meta itemprop=wordCount content="123"><meta itemprop=keywords content="Bash,Linux,Shell,脚本"><meta property="og:url" content="https://hch1212.github.io/posts/2026/04/bash/"><meta property="og:site_name" content="giftiaのblog"><meta property="og:title" content="Bash"><meta property="og:description" content="Bash 基础速查：基础命令、变量、条件判断、循环、函数及脚本编写。"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-04-16T00:00:00+00:00"><meta property="article:modified_time" content="2026-07-15T03:25:48+00:00"><meta property="article:tag" content="Bash"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Shell"><meta property="article:tag" content="脚本"><meta name=twitter:card content="summary"><meta name=twitter:title content="Bash"><meta name=twitter:description content="Bash 基础速查：基础命令、变量、条件判断、循环、函数及脚本编写。"><link rel=canonical href=https://hch1212.github.io/posts/2026/04/bash/></head><body class="bg-(--bg) text-black antialiased duration-200 ease-out [-webkit-tap-highlight-color:transparent] dark:text-white"><header class="mx-auto flex h-[4.5rem] max-w-(--w) px-8 whitespace-nowrap lg:justify-center"><div class="relative z-50 flex items-center ltr:mr-auto rtl:ml-auto"><a class="-translate-y-[1px] text-2xl font-medium" href=https://hch1212.github.io/>giftiaのblog</a><div class="btn-dark text-[0px] ltr:ml-4 rtl:mr-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]" role=button aria-label=Dark></div></div><div class="btn-menu relative z-50 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden ltr:-mr-8 rtl:-ml-8" role=button aria-label=Menu></div><script>const htmlClass=document.documentElement.classList;setTimeout(()=>{htmlClass.remove("not-ready")},10);const btnMenu=document.querySelector(".btn-menu");btnMenu.addEventListener("click",()=>{htmlClass.toggle("open")});const metaTheme=document.querySelector('meta[name="theme-color"]'),lightBg="#faf8f1".replace(/"/g,""),setDark=e=>{metaTheme.setAttribute("content",e?"#000":lightBg),htmlClass[e?"add":"remove"]("dark"),localStorage.setItem("dark",e)},darkScheme=window.matchMedia("(prefers-color-scheme: dark)");if(htmlClass.contains("dark"))setDark(!0);else{const e=localStorage.getItem("dark");setDark(e?e==="true":darkScheme.matches)}darkScheme.addEventListener("change",e=>{setDark(e.matches)});const btnDark=document.querySelector(".btn-dark");btnDark.addEventListener("click",()=>{setDark(localStorage.getItem("dark")!=="true")})</script><div class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full flex-col justify-center bg-(--bg) pb-16 duration-200 select-none lg:static lg:h-auto lg:flex-row lg:bg-transparent! lg:pb-0 lg:transition-none"><nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-10 rtl:space-x-reverse"><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/archives/>Archives</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/links/>Links</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/loves/>Loves</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/gallery/>Gallery</a><a class="block text-center text-xl leading-[5rem] lg:text-base lg:font-normal" href=/about/>About</a></nav><nav class="mt-12 flex justify-center space-x-10 lg:mt-0 lg:items-center ltr:lg:ml-14 rtl:space-x-reverse rtl:lg:mr-14 dark:invert"><a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./github.svg) href=https://github.com/hch1212 target=_blank rel=me>github</a>
 <a class="h-7 w-7 text-[0px] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6" style=--url:url(./rss.svg) href=https://hch1212.github.io/index.xml target=_blank rel=alternate>rss</a></nav></div></header><main class="prose prose-neutral dark:prose-invert relative mx-auto min-h-[calc(100vh-9rem)] max-w-(--w) px-8 pt-14 pb-16"><article><header class=mb-14><h1 class="my-0! pb-2.5">Bash</h1><div class="text-xs antialiased opacity-60"><time>Apr 16, 2026</time><span class=mx-1>&#183;</span>
-<span>giftia</span></div></header><section><h1 id=bash-基础指南从入门到实用>Bash 基础指南：从入门到实用</h1><p>Bash (Bourne Again SHell) 是大多数 Linux 和 macOS 系统的默认命令行解释器。它不仅是一个与系统交互的界面，也是一门强大的脚本语言。本文将带你快速掌握 Bash 的核心概念和实用技巧。</p><h2 id=1-什么是-bash>1. 什么是 Bash？</h2><p>简单来说，Bash 就像一个翻译官。你输入人类可读的命令，Bash 将其翻译成操作系统能理解的指令并执行。</p><h2 id=2-基础命令>2. 基础命令</h2><p>在开始编写脚本之前，我们需要熟悉一些最常用的基础命令：</p><ul><li><code>pwd</code>: 显示当前所在目录的路径 (Print Working Directory)。</li><li><code>ls</code>: 列出当前目录下的文件和文件夹。<ul><li><code>ls -l</code>: 详细列表格式。</li><li><code>ls -a</code>: 显示隐藏文件。</li></ul></li><li><code>cd</code>: 切换目录 (Change Directory)。<ul><li><code>cd /var/log</code>: 进入绝对路径。</li><li><code>cd ..</code>: 返回上一级目录。</li></ul></li><li><code>mkdir</code>: 创建新目录。</li><li><code>rm</code>: 删除文件或目录。<ul><li><code>rm file.txt</code>: 删除文件。</li><li><code>rm -r folder</code>: 递归删除目录及其内容。</li></ul></li></ul><h2 id=3-变量>3. 变量</h2><p>Bash 中的变量不需要声明类型，直接赋值即可。</p><p><strong>定义和使用变量：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 定义变量（注意：等号两边不能有空格）</span>
+<span>giftia</span></div></header><section><h2 id=基础命令>基础命令</h2><ul><li><code>pwd</code>：显示当前目录路径</li><li><code>ls</code>：列出文件（<code>-l</code> 详细，<code>-a</code> 含隐藏）</li><li><code>cd</code>：切换目录（<code>cd ..</code> 上级）</li><li><code>mkdir</code>：创建目录</li><li><code>rm</code>：删除（<code>-r</code> 递归）</li></ul><h2 id=变量>变量</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 等号两边不能有空格</span>
 </span></span><span class=line><span class=cl><span class=nv>name</span><span class=o>=</span><span class=s2>&#34;World&#34;</span>
-</span></span><span class=line><span class=cl><span class=nv>age</span><span class=o>=</span><span class=m>25</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 使用变量（在变量名前加 $ 符号）</span>
 </span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Hello, </span><span class=nv>$name</span><span class=s2>!&#34;</span>
-</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;I am </span><span class=nv>$age</span><span class=s2> years old.&#34;</span>
-</span></span></code></pre></div><h2 id=4-条件判断>4. 条件判断</h2><p>Bash 使用 <code>if</code> 语句进行条件控制。</p><p><strong>基本语法：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>score</span><span class=o>=</span><span class=m>85</span>
-</span></span><span class=line><span class=cl>
+</span></span></code></pre></div><h2 id=条件判断>条件判断</h2><p>常用比较符：<code>-eq</code>（等于）、<code>-ne</code>（不等于）、<code>-gt</code>（大于）、<code>-lt</code>（小于）。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>score</span><span class=o>=</span><span class=m>85</span>
 </span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=nv>$score</span> -ge <span class=m>90</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
 </span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;优秀&#34;</span>
 </span></span><span class=line><span class=cl><span class=k>elif</span> <span class=o>[</span> <span class=nv>$score</span> -ge <span class=m>60</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
@@ -55,44 +64,33 @@ Bash 使用 if 语句进行条件控制。'><meta name=author content="giftia"><
 </span></span><span class=line><span class=cl><span class=k>else</span>
 </span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;不及格&#34;</span>
 </span></span><span class=line><span class=cl><span class=k>fi</span>
-</span></span></code></pre></div><p><em>注意：<code>[</code> 和 <code>]</code> 内部两边必须有空格。<code>-ge</code> 表示大于等于 (greater than or equal)。</em></p><p><strong>常用比较符：</strong></p><ul><li><code>-eq</code>: 等于</li><li><code>-ne</code>: 不等于</li><li><code>-gt</code>: 大于</li><li><code>-lt</code>: 小于</li></ul><h2 id=5-循环结构>5. 循环结构</h2><p>循环用于重复执行一段代码。</p><p><strong>For 循环：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 遍历列表</span>
+</span></span></code></pre></div><h2 id=循环>循环</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># for 循环</span>
 </span></span><span class=line><span class=cl><span class=k>for</span> fruit in apple banana cherry<span class=p>;</span> <span class=k>do</span>
 </span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;I like </span><span class=nv>$fruit</span><span class=s2>&#34;</span>
 </span></span><span class=line><span class=cl><span class=k>done</span>
 </span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 遍历数字范围</span>
-</span></span><span class=line><span class=cl><span class=k>for</span> i in <span class=o>{</span>1..5<span class=o>}</span><span class=p>;</span> <span class=k>do</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Number: </span><span class=nv>$i</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl><span class=k>done</span>
-</span></span></code></pre></div><p><strong>While 循环：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>count</span><span class=o>=</span><span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=c1># while 循环</span>
+</span></span><span class=line><span class=cl><span class=nv>count</span><span class=o>=</span><span class=m>1</span>
 </span></span><span class=line><span class=cl><span class=k>while</span> <span class=o>[</span> <span class=nv>$count</span> -le <span class=m>3</span> <span class=o>]</span><span class=p>;</span> <span class=k>do</span>
 </span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Count is </span><span class=nv>$count</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=nv>count</span><span class=o>=</span><span class=k>$((</span>count <span class=o>+</span> <span class=m>1</span><span class=k>))</span> <span class=c1># 数学运算</span>
+</span></span><span class=line><span class=cl>    <span class=nv>count</span><span class=o>=</span><span class=k>$((</span>count <span class=o>+</span> <span class=m>1</span><span class=k>))</span>
 </span></span><span class=line><span class=cl><span class=k>done</span>
-</span></span></code></pre></div><h2 id=6-函数>6. 函数</h2><p>将常用的代码块封装成函数，可以提高代码的复用性。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 定义函数</span>
-</span></span><span class=line><span class=cl>greet<span class=o>()</span> <span class=o>{</span>
-</span></span><span class=line><span class=cl>    <span class=c1># $1 表示第一个参数</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Hello, </span><span class=nv>$1</span><span class=s2>! Welcome to Bash.&#34;</span>
+</span></span></code></pre></div><h2 id=函数>函数</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>greet<span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Hello, </span><span class=nv>$1</span><span class=s2>!&#34;</span>  <span class=c1># $1 为第一个参数</span>
 </span></span><span class=line><span class=cl><span class=o>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 调用函数并传递参数</span>
 </span></span><span class=line><span class=cl>greet <span class=s2>&#34;Alice&#34;</span>
-</span></span><span class=line><span class=cl>greet <span class=s2>&#34;Bob&#34;</span>
-</span></span></code></pre></div><h2 id=7-管道与重定向>7. 管道与重定向</h2><p>这是 Bash 中非常强大的特性，用于连接多个命令或控制输入输出。</p><p><strong>重定向 (<code>></code> 和 <code>>></code>)：</strong>
-将命令的输出保存到文件中。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 覆盖写入</span>
-</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;This is a test&#34;</span> &gt; test.txt
+</span></span></code></pre></div><h2 id=管道与重定向>管道与重定向</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 重定向</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;hello&#34;</span> &gt; file.txt   <span class=c1># 覆盖写入</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;world&#34;</span> &gt;&gt; file.txt  <span class=c1># 追加写入</span>
 </span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 追加写入</span>
-</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Another line&#34;</span> &gt;&gt; test.txt
-</span></span></code></pre></div><p><strong>管道 (<code>|</code>)：</strong>
-将前一个命令的输出作为后一个命令的输入。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 列出当前目录文件，并查找包含 &#34;txt&#34; 的行</span>
+</span></span><span class=line><span class=cl><span class=c1># 管道：前一个命令的输出作为后一个命令的输入</span>
 </span></span><span class=line><span class=cl>ls -l <span class=p>|</span> grep <span class=s2>&#34;txt&#34;</span>
-</span></span></code></pre></div><h2 id=8-编写你的第一个脚本>8. 编写你的第一个脚本</h2><ol><li>创建一个文件，例如 <code>hello.sh</code>。</li><li>在第一行添加 Shebang (<code>#!/bin/bash</code>)，告诉系统使用 Bash 解释器。</li><li>编写代码。</li><li>赋予执行权限并运行。</li></ol><p><strong>hello.sh 内容：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
-</span></span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Starting script...&#34;</span>
+</span></span></code></pre></div><h2 id=编写脚本>编写脚本</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Starting...&#34;</span>
 </span></span><span class=line><span class=cl>date
-</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Script finished.&#34;</span>
-</span></span></code></pre></div><p><strong>执行步骤：</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>chmod +x hello.sh  <span class=c1># 赋予执行权限</span>
-</span></span><span class=line><span class=cl>./hello.sh         <span class=c1># 运行脚本</span>
-</span></span></code></pre></div><h2 id=总结>总结</h2><p>Bash 是一门实践性很强的语言。掌握上述基础后，你可以通过编写简单的自动化脚本（如备份文件、批量重命名）来不断提升技能。遇到不熟悉的命令，随时使用 <code>man 命令名</code> (如 <code>man ls</code>) 查看帮助文档。</p></section><footer class="mt-12 flex flex-wrap"><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/bash>Bash</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/linux>Linux</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/shell>Shell</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E8%84%9A%E6%9C%AC>脚本</a></footer><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Finished.&#34;</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>chmod +x hello.sh
+</span></span><span class=line><span class=cl>./hello.sh
+</span></span></code></pre></div></section><footer class="mt-12 flex flex-wrap"><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/bash>Bash</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/linux>Linux</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/shell>Shell</a><a class="mb-1.5 rounded-lg bg-black/[3%] px-5 py-1 no-underline hover:bg-black/[6%] ltr:mr-1.5 rtl:ml-1.5 dark:bg-white/[8%] dark:hover:bg-white/[12%]" href=https://hch1212.github.io/tags/%E8%84%9A%E6%9C%AC>脚本</a></footer><div class="giscus mt-24"></div><script src=https://giscus.app/client.js data-repo=HCH1212/giftia_blog data-repo-id=R_kgDOQycHqg data-category=Announcements data-category-id=DIC_kwDOQycHqs4C0hEV data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN data-loading=lazy crossorigin=anonymous async></script></article></main><footer class="mx-auto flex h-[4.5rem] max-w-(--w) items-center px-8 text-xs tracking-wider uppercase opacity-60"><div class=mr-auto>&copy;2026
 <a class=link href=https://hch1212.github.io/>giftiaのblog</a></div><a class="link mx-6" href=https://gohugo.io/ rel=noopener target=_blank>powered by hugo️️</a>️
 <a class=link href=https://github.com/nanxiaobei/hugo-paper rel=noopener target=_blank>hugo-paper</a></footer></body></html>

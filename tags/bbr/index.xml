@@ -1,38 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bbr on giftiaのblog</title><link>https://hch1212.github.io/tags/bbr/</link><description>Recent content in Bbr on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 14 Jul 2026 09:14:00 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/bbr/index.xml" rel="self" type="application/rss+xml"/><item><title>Tcp拥塞控制算法之bbr</title><link>https://hch1212.github.io/posts/2026/01/tcp%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8Bbbr/</link><pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8Bbbr/</guid><description>&lt;h2 id="一-环境"&gt;一. 环境&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;vmware虚拟机&lt;/li&gt;
-&lt;li&gt;iso镜像：ubuntu-22.04.5-live-server-amd64.iso&lt;/li&gt;
-&lt;li&gt;配置：2核4G&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="二-默认算法"&gt;二. 默认算法&lt;/h2&gt;
-&lt;h3 id="1-查看当前的拥塞控制算法"&gt;1. 查看当前的拥塞控制算法&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;$ sysctl net.ipv4.tcp_congestion_control
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&amp;gt; net.ipv4.tcp_congestion_control &lt;span class="o"&gt;=&lt;/span&gt; cubic
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可见，默认的算法是cubic&lt;/p&gt;
-&lt;h3 id="2-cubic算法"&gt;2. cubic算法&lt;/h3&gt;
-&lt;p&gt;主要是通过丢包来调整窗口的的大小，控制传输速率&lt;/p&gt;
-&lt;p&gt;a. 慢启动&lt;/p&gt;
-&lt;p&gt;每收到一个ack，拥塞窗口（cwnd）就指数增长&lt;/p&gt;
-&lt;p&gt;cwnd：1-2-4-8-16-32&amp;hellip;&lt;/p&gt;
-&lt;p&gt;b. 拥塞避免&lt;/p&gt;
-&lt;p&gt;cubic的核心部分，使用三次函数来增长窗口（reno这里是线性增长）&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-plain" data-lang="plain"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;W(t) = C × (t - K)³ + W_max
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;c. 快重传&lt;/p&gt;
-&lt;p&gt;收到三个重复ack，立即重传丢失的包，不等待超时&lt;/p&gt;
-&lt;p&gt;d. 快恢复&lt;/p&gt;
-&lt;p&gt;快重传后，ssthresh=cwnd*β（一般是0.7）, cwnd=ssthresh，然后直接进入拥塞避免阶段（跳过慢启动）&lt;/p&gt;
-&lt;h2 id="三-切换为bbr"&gt;三. 切换为bbr&lt;/h2&gt;
-&lt;h3 id="1-查看当前支持的拥塞控制算法"&gt;1. 查看当前支持的拥塞控制算法&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;$ sysctl net.ipv4.tcp_available_congestion_control
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&amp;gt; net.ipv4.tcp_available_congestion_control &lt;span class="o"&gt;=&lt;/span&gt; reno cubic
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;发现并没有bbr，难道是不支持吗&lt;/p&gt;
-&lt;p&gt;查看一下内核版本&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;$ uname -r
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&amp;gt; 5.15.0-119-generic
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;内核版本&amp;gt;4.9就支持bbr，所以需要我们手动加载bbr模块&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;$ sudo modprobe tcp_bbr
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;再次查看&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;$ sysctl net.ipv4.tcp_available_congestion_control
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&amp;gt; net.ipv4.tcp_available_congestion_control &lt;span class="o"&gt;=&lt;/span&gt; reno cubic bbr
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="2-切换为bbr算法"&gt;2. 切换为bbr算法&lt;/h3&gt;
-&lt;p&gt;我这里使用临时切换（重启后失效）&lt;/p&gt;</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bbr on giftiaのblog</title><link>https://hch1212.github.io/tags/bbr/</link><description>Recent content in Bbr on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 03:25:48 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/bbr/index.xml" rel="self" type="application/rss+xml"/><item><title>TCP 拥塞控制算法之 BBR</title><link>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</link><pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</guid><description>&lt;h2 id="cubic-算法"&gt;CUBIC 算法&lt;/h2&gt;
+&lt;p&gt;默认拥塞控制算法，基于丢包来调整窗口大小。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;慢启动&lt;/strong&gt;：每收到 ACK，cwnd 指数增长（1→2→4→8→16&amp;hellip;）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;拥塞避免&lt;/strong&gt;：使用三次函数增长窗口：&lt;code&gt;W(t) = C × (t - K)³ + W_max&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;快重传&lt;/strong&gt;：收到 3 个重复 ACK 立即重传&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;快恢复&lt;/strong&gt;：ssthresh = cwnd × 0.7，直接进入拥塞避免&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="切换为-bbr"&gt;切换为 BBR&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 加载 BBR 模块&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo modprobe tcp_bbr
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 切换（临时，重启失效）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo sysctl -w net.core.default_qdisc&lt;span class="o"&gt;=&lt;/span&gt;fq
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo sysctl -w net.ipv4.tcp_congestion_control&lt;span class="o"&gt;=&lt;/span&gt;bbr
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="bbr-原理"&gt;BBR 原理&lt;/h2&gt;
+&lt;p&gt;不同于基于丢包的算法，BBR 主动测量网络状况。&lt;/p&gt;
+&lt;p&gt;两个核心指标：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;BtlBw（瓶颈带宽）&lt;/strong&gt;：实测传输速率的最大值&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;RTprop（最小往返时延）&lt;/strong&gt;：实测 RTT 的最小值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;最优发送窗口 = BtlBw × RTprop（BDP，带宽延迟积）。&lt;/p&gt;
+&lt;h3 id="四个阶段"&gt;四个阶段&lt;/h3&gt;
+&lt;p&gt;BBR 状态机循环：STARTUP → DRAIN → PROBE_BW → PROBE_RTT → &amp;hellip;&lt;/p&gt;</description></item></channel></rss>

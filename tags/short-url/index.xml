@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Short-Url on giftiaのblog</title><link>https://hch1212.github.io/tags/short-url/</link><description>Recent content in Short-Url on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 14 Jul 2026 09:14:00 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/short-url/index.xml" rel="self" type="application/rss+xml"/><item><title>go 实现短链</title><link>https://hch1212.github.io/posts/2026/01/go-%E5%AE%9E%E7%8E%B0%E7%9F%AD%E9%93%BE/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/go-%E5%AE%9E%E7%8E%B0%E7%9F%AD%E9%93%BE/</guid><description>&lt;h2 id="为什么要短链"&gt;为什么要短链&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Short-Url on giftiaのblog</title><link>https://hch1212.github.io/tags/short-url/</link><description>Recent content in Short-Url on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 03:25:48 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/short-url/index.xml" rel="self" type="application/rss+xml"/><item><title>go 实现短链</title><link>https://hch1212.github.io/posts/2026/01/go-%E5%AE%9E%E7%8E%B0%E7%9F%AD%E9%93%BE/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/go-%E5%AE%9E%E7%8E%B0%E7%9F%AD%E9%93%BE/</guid><description>&lt;h2 id="为什么要短链"&gt;为什么要短链&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;防止链接被滥用&lt;/li&gt;
 &lt;li&gt;防止链接过长&lt;/li&gt;
@@ -143,12 +143,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="点击短链发生了什么"&gt;点击短链发生了什么&lt;/h2&gt;
 &lt;ol&gt;
-&lt;li&gt;用户访问短链，浏览器发送请求到服务器。&lt;/li&gt;
-&lt;li&gt;服务器从 Redis 中获取热点 URL。&lt;/li&gt;
-&lt;li&gt;如果热点 URL 不存在，则从 MySQL 中获取短链。&lt;/li&gt;
-&lt;li&gt;服务器检查短链是否过期。&lt;/li&gt;
-&lt;li&gt;如果短链过期，则返回 410 Gone。&lt;/li&gt;
-&lt;li&gt;如果短链未过期，则保存到 Redis 作为热点。&lt;/li&gt;
-&lt;li&gt;服务器重定向到原始 URL。&lt;/li&gt;
+&lt;li&gt;用户访问短链，浏览器发送请求到服务器&lt;/li&gt;
+&lt;li&gt;服务器从 Redis 获取热点 URL&lt;/li&gt;
+&lt;li&gt;若 Redis 未命中，从 MySQL 获取短链&lt;/li&gt;
+&lt;li&gt;检查短链是否过期，过期返回 410 Gone&lt;/li&gt;
+&lt;li&gt;未过期则回种 Redis，重定向到原始 URL&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;参考：&lt;a href="https://www.cnblogs.com/beatle-go/p/18301400"&gt;https://www.cnblogs.com/beatle-go/p/18301400&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

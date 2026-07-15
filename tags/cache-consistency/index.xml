@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cache-Consistency on giftiaのblog</title><link>https://hch1212.github.io/tags/cache-consistency/</link><description>Recent content in Cache-Consistency on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 14 Jul 2026 09:14:00 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/cache-consistency/index.xml" rel="self" type="application/rss+xml"/><item><title>缓存与数据库双写一致性</title><link>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</guid><description>&lt;h2 id="为什么不一致"&gt;为什么不一致&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cache-Consistency on giftiaのblog</title><link>https://hch1212.github.io/tags/cache-consistency/</link><description>Recent content in Cache-Consistency on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 03:25:48 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/cache-consistency/index.xml" rel="self" type="application/rss+xml"/><item><title>缓存与数据库双写一致性</title><link>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E7%BC%93%E5%AD%98%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7/</guid><description>&lt;h2 id="为什么不一致"&gt;为什么不一致&lt;/h2&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/db1.png" alt="img"&gt;&lt;/p&gt;
 &lt;h2 id="缓存与数据库双写一致性方案"&gt;缓存与数据库双写一致性方案&lt;/h2&gt;
 &lt;h3 id="1-更新数据库之后删除缓存解决部分不一致"&gt;1. 更新数据库之后删除缓存（解决部分不一致）&lt;/h3&gt;
@@ -6,20 +6,11 @@
 &lt;h3 id="3-canal-异步更新缓存最终一致性性能较好"&gt;3. canal 异步更新缓存（最终一致性，性能较好）&lt;/h3&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/db2.png" alt="img"&gt;&lt;/p&gt;
 &lt;h3 id="4-设置较短的过期时间最终一致性性能较好最简单"&gt;4. 设置较短的过期时间（最终一致性，性能较好，最简单）&lt;/h3&gt;
-&lt;h3 id="5-1的优化"&gt;5. 1的优化：&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;延迟双删策略：为了处理在缓存删除和数据库更新之间可能发生的并发请求，可以采用延迟双删策略：&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;写操作流程：&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
+&lt;h3 id="延迟双删方案1的优化"&gt;延迟双删（方案1的优化）&lt;/h3&gt;
+&lt;p&gt;处理缓存删除与数据库更新之间的并发请求：&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;先删除Redis中的缓存数据。&lt;/li&gt;
-&lt;li&gt;更新MySQL中的数据。&lt;/li&gt;
-&lt;li&gt;延迟一小段时间（例如，几百毫秒），再次删除Redis中的缓存数据。&lt;/li&gt;
+&lt;li&gt;先删除 Redis 缓存&lt;/li&gt;
+&lt;li&gt;更新 MySQL&lt;/li&gt;
+&lt;li&gt;延迟一小段时间（如几百毫秒），再次删除 Redis 缓存&lt;/li&gt;
 &lt;/ol&gt;
-&lt;ul&gt;
-&lt;li&gt;延迟的目的是为了处理在这个短暂的时间窗口内可能到达的并发读请求，这些请求可能会再次将旧数据加载到缓存中。&lt;/li&gt;
-&lt;/ul&gt;</description></item></channel></rss>
+&lt;p&gt;延迟目的是清除在时间窗口内并发读请求写入的旧数据。&lt;/p&gt;</description></item></channel></rss>
