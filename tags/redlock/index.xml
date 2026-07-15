@@ -1,7 +1,39 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Redlock on giftiaのblog</title><link>https://hch1212.github.io/tags/redlock/</link><description>Recent content in Redlock on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/redlock/index.xml" rel="self" type="application/rss+xml"/><item><title>什么是RedLock</title><link>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</guid><description>&lt;h2 id="什么是-redlock"&gt;什么是 RedLock&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Redlock on giftiaのblog</title><link>https://hch1212.github.io/tags/redlock/</link><description>Recent content in Redlock on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 09:23:06 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/redlock/index.xml" rel="self" type="application/rss+xml"/><item><title>什么是RedLock</title><link>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</guid><description>&lt;h2 id="什么是-redlock"&gt;什么是 RedLock&lt;/h2&gt;
 &lt;p&gt;RedLock 是 Redis 作者 Antirez 提出的分布式锁算法，使用多个独立 Redis 实例避免单点故障。&lt;/p&gt;
 &lt;h2 id="算法流程"&gt;算法流程&lt;/h2&gt;
-&lt;ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;sequenceDiagram
+ participant C as 客户端
+ participant R1 as Redis-1
+ participant R2 as Redis-2
+ participant R3 as Redis-3
+ participant R4 as Redis-4
+ participant R5 as Redis-5
+
+ Note over C,R5: 加锁阶段
+ par 并行请求
+ C-&amp;gt;&amp;gt;R1: SET lock uuid NX PX 10000
+ R1--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R2: SET lock uuid NX PX 10000
+ R2--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R3: SET lock uuid NX PX 10000
+ R3--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R4: SET lock uuid NX PX 10000
+ R4--&amp;gt;&amp;gt;X: 超时
+ and
+ C-&amp;gt;&amp;gt;R5: SET lock uuid NX PX 10000
+ R5--&amp;gt;&amp;gt;C: OK
+ end
+ Note over C: 4/5 ≥ 3 (N/2+1) → 加锁成功&amp;lt;br/&amp;gt;有效时间 = 10s - 获取耗时
+
+ Note over C,R5: 释放阶段
+ C-&amp;gt;&amp;gt;R1: DEL lock (Lua 校验 uuid)
+ C-&amp;gt;&amp;gt;R2: DEL lock
+ C-&amp;gt;&amp;gt;R3: DEL lock
+ C-&amp;gt;&amp;gt;R5: DEL lock
+&lt;/code&gt;&lt;/pre&gt;&lt;ol&gt;
 &lt;li&gt;客户端向 N 个 Redis 实例（建议 N=5）尝试获取锁，生成随机锁 ID 并使用 &lt;code&gt;SET key value NX PX timeout&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;设定锁过期时间，防止死锁&lt;/li&gt;
 &lt;li&gt;在大多数实例（N/2+1）上成功获取锁，才算获取成功&lt;/li&gt;

@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据结构 on giftiaのblog</title><link>https://hch1212.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</link><description>Recent content in 数据结构 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.xml" rel="self" type="application/rss+xml"/><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
-&lt;p&gt;在处理海量数据去重或判断“是否存在”时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
-&lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的“误判率”。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据结构 on giftiaのblog</title><link>https://hch1212.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</link><description>Recent content in 数据结构 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 09:23:06 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.xml" rel="self" type="application/rss+xml"/><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
+&lt;p&gt;在处理海量数据去重或判断&amp;quot;是否存在&amp;quot;时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
+&lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的&amp;quot;误判率&amp;quot;。&lt;/p&gt;
 &lt;p&gt;它的回答只有两种可能：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;绝对不在集合中（100% 准确）。&lt;/li&gt;
@@ -8,50 +8,19 @@
 &lt;/ol&gt;
 &lt;h2 id="原理与结构"&gt;原理与结构&lt;/h2&gt;
 &lt;p&gt;布隆过滤器的底层是一个位数组和一组无偏哈希函数。&lt;/p&gt;
-&lt;p&gt;工作流程：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;初始化：所有位（Bit）置为 0。&lt;/li&gt;
-&lt;li&gt;添加元素：
-&lt;ul&gt;
-&lt;li&gt;将元素通过 k 个哈希函数计算，得到 k 个位置。&lt;/li&gt;
-&lt;li&gt;将位数组中对应的这些位置全部置为 1。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;查询元素：
-&lt;ul&gt;
-&lt;li&gt;将待查询元素通过同样的 k 个哈希函数计算。&lt;/li&gt;
-&lt;li&gt;如果所有位置都是 1：认为元素“可能存在”。&lt;/li&gt;
-&lt;li&gt;如果任一位置是 0：认为元素“绝对不存在”。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="应用场景"&gt;应用场景&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;防止缓存穿透：
-在访问数据库前，先通过布隆过滤器判断 Key 是否存在。
-如果不存在直接返回，避免无效请求击穿缓存直达数据库。&lt;/li&gt;
-&lt;li&gt;爬虫 URL 去重：
-存入数亿级 URL，快速判断某个网页是否已经爬取过，节省内存。&lt;/li&gt;
-&lt;li&gt;垃圾邮件过滤：
-从数十亿个垃圾邮件地址中快速匹配。&lt;/li&gt;
-&lt;li&gt;黑名单系统：
-如恶意 IP 过滤、敏感词检查。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="进阶版布隆过滤器的变体"&gt;进阶版：布隆过滤器的变体&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Counting Bloom Filter (可计数布隆过滤器)&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;解决问题：不支持删除。&lt;/li&gt;
-&lt;li&gt;原理：将位数组的每个 Bit 换成一个 Counter (计数器)。&lt;/li&gt;
-&lt;li&gt;操作：添加时 +1，删除时 -1。虽然增加了空间占用，但支持了动态删除。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Cuckoo Filter (布谷鸟过滤器)&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;优势：支持动态删除，且在误判率较低时，查询性能优于布隆过滤器，空间利用率更高。&lt;/li&gt;
-&lt;li&gt;原理：基于布谷鸟哈希算法，通过指纹（Fingerprint）存储元素特征。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</description></item></channel></rss>
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ subgraph 添加[&amp;#34;添加元素 x&amp;#34;]
+ A[&amp;#34;元素 x&amp;#34;] --&amp;gt; H1[&amp;#34;Hash1 → 位置 3&amp;#34;] &amp;amp; H2[&amp;#34;Hash2 → 位置 5&amp;#34;] &amp;amp; H3[&amp;#34;Hash3 → 位置 8&amp;#34;]
+ H1 --&amp;gt; B1[&amp;#34;Bit[3] = 1&amp;#34;]
+ H2 --&amp;gt; B2[&amp;#34;Bit[5] = 1&amp;#34;]
+ H3 --&amp;gt; B3[&amp;#34;Bit[8] = 1&amp;#34;]
+ end
+
+ subgraph 查询[&amp;#34;查询元素 y (y ≠ x)&amp;#34;]
+ Q[&amp;#34;元素 y&amp;#34;] --&amp;gt; QH1[&amp;#34;Hash1 → 位置 1&amp;#34;] &amp;amp; QH2[&amp;#34;Hash2 → 位置 5&amp;#34;] &amp;amp; QH3[&amp;#34;Hash3 → 位置 8&amp;#34;]
+ QH1 --&amp;gt; R1[&amp;#34;Bit[1] = 0 ⚠️&amp;#34;]
+ QH2 --&amp;gt; R2[&amp;#34;Bit[5] = 1&amp;#34;]
+ QH3 --&amp;gt; R3[&amp;#34;Bit[8] = 1&amp;#34;]
+ R1 --&amp;gt; RESULT[&amp;#34;任一为 0 → 绝对不存在&amp;#34;]
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;工作流程：&lt;/p&gt;</description></item></channel></rss>

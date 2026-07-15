@@ -1,6 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Aof on giftiaのblog</title><link>https://hch1212.github.io/tags/aof/</link><description>Recent content in Aof on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/aof/index.xml" rel="self" type="application/rss+xml"/><item><title>redis数据持久化</title><link>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid><description>&lt;h2 id="rdb-持久化"&gt;RDB 持久化&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Aof on giftiaのblog</title><link>https://hch1212.github.io/tags/aof/</link><description>Recent content in Aof on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 09:23:06 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/aof/index.xml" rel="self" type="application/rss+xml"/><item><title>redis数据持久化</title><link>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid><description>&lt;h2 id="rdb-持久化"&gt;RDB 持久化&lt;/h2&gt;
 &lt;p&gt;RDB 是 Redis 默认的持久化方式，它是一种快照（snapshot）持久化。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ P[&amp;#34;Redis 父进程&amp;lt;br/&amp;gt;接收 BGSAVE 命令&amp;#34;] --&amp;gt;|fork| C[&amp;#34;子进程&amp;#34;]
+ P --&amp;gt;|&amp;#34;继续处理请求&amp;lt;br/&amp;gt;(写时复制 COW)&amp;#34;| P2[&amp;#34;修改数据时&amp;lt;br/&amp;gt;OS 自动复制数据页&amp;#34;]
+ 
+ C --&amp;gt;|&amp;#34;共享父进程&amp;lt;br/&amp;gt;内存快照&amp;#34;| C2[&amp;#34;遍历内存数据&amp;#34;]
+ C2 --&amp;gt;|写入| T[&amp;#34;临时 RDB 文件&amp;#34;]
+ T --&amp;gt;|原子 rename| D[&amp;#34;dump.rdb&amp;#34;]
+ D --&amp;gt;|通知| P
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;RDB 会在指定的时间间隔内，将 Redis 在内存中的所有数据以二进制文件的形式写入硬盘。这个文件通常命名为 &lt;code&gt;dump.rdb&lt;/code&gt;。整个过程可以理解为对 Redis 内存数据做了一次全量备份。&lt;/li&gt;
 &lt;/ul&gt;
@@ -17,15 +25,4 @@
 &lt;li&gt;对父进程影响小：持久化由子进程完成，父进程几乎不阻塞，可以继续响应请求。&lt;/li&gt;
 &lt;li&gt;适合备份：RDB 文件是一个单一的紧凑文件，非常适合进行异地备份。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;可能丢失数据：RDB 是定时快照，如果在两次快照之间 Redis 宕机，这期间的数据就会丢失。例如，你配置每 5 分钟做一次快照，如果 Redis 在第 4 分钟宕机，你将丢失这 4 分钟的所有数据。&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;fork()&lt;/code&gt; 性能问题：当数据量巨大时，&lt;code&gt;fork()&lt;/code&gt; 子进程需要消耗一定的时间，可能导致短暂的阻塞。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="aof-持久化"&gt;AOF 持久化&lt;/h2&gt;
-&lt;p&gt;AOF 是一种增量式的持久化方式。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;AOF 机制会将 Redis 执行的每一条写命令（例如 &lt;code&gt;SET&lt;/code&gt;, &lt;code&gt;INCR&lt;/code&gt;）都以纯文本的形式记录到一个文件中，文件通常命名为 &lt;code&gt;appendonly.aof&lt;/code&gt;。当 Redis 重启时，它会重新执行这个文件中的所有写命令来恢复数据。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;工作流程：&lt;/strong&gt;&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;&lt;/p&gt;</description></item></channel></rss>

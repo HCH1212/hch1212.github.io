@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>StartupProbe on giftiaのblog</title><link>https://hch1212.github.io/tags/startupprobe/</link><description>Recent content in StartupProbe on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/startupprobe/index.xml" rel="self" type="application/rss+xml"/><item><title>Pod生命周期</title><link>https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</link><pubDate>Mon, 01 Jun 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</guid><description>&lt;p&gt;Pod 生命周期里，最容易影响线上稳定性的部分，往往不是“能不能启动”，而是&lt;strong&gt;探针配得对不对&lt;/strong&gt;。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>StartupProbe on giftiaのblog</title><link>https://hch1212.github.io/tags/startupprobe/</link><description>Recent content in StartupProbe on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 09:23:06 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/startupprobe/index.xml" rel="self" type="application/rss+xml"/><item><title>Pod生命周期</title><link>https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</link><pubDate>Mon, 01 Jun 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/06/pod%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</guid><description>&lt;p&gt;Pod 生命周期里，最容易影响线上稳定性的部分，往往不是&amp;quot;能不能启动&amp;quot;，而是&lt;strong&gt;探针配得对不对&lt;/strong&gt;。&lt;/p&gt;
 &lt;p&gt;这篇就重点讲三个探针：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;livenessProbe&lt;/code&gt;&lt;/li&gt;
@@ -9,11 +9,11 @@
 &lt;ol&gt;
 &lt;li&gt;&lt;code&gt;livenessProbe&lt;/code&gt; 失败：容器会被重启。&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;readinessProbe&lt;/code&gt; 失败：容器不接流量，但不一定重启。&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;startupProbe&lt;/code&gt; 生效期间：&lt;code&gt;liveness/readiness&lt;/code&gt; 会被暂时屏蔽，给慢启动应用“保护期”。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;startupProbe&lt;/code&gt; 生效期间：&lt;code&gt;liveness/readiness&lt;/code&gt; 会被暂时屏蔽，给慢启动应用&amp;quot;保护期&amp;quot;。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h2 id="三个探针分别解决什么问题"&gt;三个探针分别解决什么问题&lt;/h2&gt;
-&lt;h3 id="1-livenessprobe进程还活着吗"&gt;1. livenessProbe：进程还“活着”吗&lt;/h3&gt;
-&lt;p&gt;它解决的是“程序假死”问题。&lt;/p&gt;
+&lt;h3 id="1-livenessprobe进程还活着吗"&gt;1. livenessProbe：进程还&amp;quot;活着&amp;quot;吗&lt;/h3&gt;
+&lt;p&gt;它解决的是&amp;quot;程序假死&amp;quot;问题。&lt;/p&gt;
 &lt;p&gt;比如：进程还在，但线程卡死、连接池耗尽、接口永远不返回。这个时候容器看起来在运行，但其实已经不可用。&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;livenessProbe&lt;/code&gt; 连续失败后，kubelet 会重启容器。&lt;/p&gt;
 &lt;p&gt;适合场景：&lt;/p&gt;
@@ -22,7 +22,7 @@
 &lt;li&gt;希望通过重启自愈&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="2-readinessprobe现在能接流量吗"&gt;2. readinessProbe：现在能接流量吗&lt;/h3&gt;
-&lt;p&gt;它解决的是“服务可用性”问题。&lt;/p&gt;
+&lt;p&gt;它解决的是&amp;quot;服务可用性&amp;quot;问题。&lt;/p&gt;
 &lt;p&gt;即使进程活着，也可能暂时不能服务，比如：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;应用刚启动，缓存还没预热&lt;/li&gt;
@@ -37,7 +37,7 @@
 &lt;li&gt;需要灰度或优雅摘流&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="3-startupprobe给慢启动应用留时间"&gt;3. startupProbe：给慢启动应用留时间&lt;/h3&gt;
-&lt;p&gt;它解决的是“启动慢导致误杀”的问题。&lt;/p&gt;
+&lt;p&gt;它解决的是&amp;quot;启动慢导致误杀&amp;quot;的问题。&lt;/p&gt;
 &lt;p&gt;有些应用启动要几十秒甚至几分钟。如果只配 &lt;code&gt;livenessProbe&lt;/code&gt;，很可能应用还没起来就被判死，不断重启，最终 &lt;code&gt;CrashLoopBackOff&lt;/code&gt;。&lt;/p&gt;
 &lt;p&gt;配置 &lt;code&gt;startupProbe&lt;/code&gt; 后，在它成功之前，&lt;code&gt;liveness/readiness&lt;/code&gt; 不会生效。&lt;/p&gt;
 &lt;p&gt;适合场景：&lt;/p&gt;

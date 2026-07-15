@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tcp on giftiaのblog</title><link>https://hch1212.github.io/tags/tcp/</link><description>Recent content in Tcp on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/tcp/index.xml" rel="self" type="application/rss+xml"/><item><title>TCP 拥塞控制算法之 BBR</title><link>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</link><pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</guid><description>&lt;h2 id="cubic-算法"&gt;CUBIC 算法&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tcp on giftiaのblog</title><link>https://hch1212.github.io/tags/tcp/</link><description>Recent content in Tcp on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 09:23:06 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/tags/tcp/index.xml" rel="self" type="application/rss+xml"/><item><title>TCP 拥塞控制算法之 BBR</title><link>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</link><pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E4%B9%8B-bbr/</guid><description>&lt;h2 id="cubic-算法"&gt;CUBIC 算法&lt;/h2&gt;
 &lt;p&gt;默认拥塞控制算法，基于丢包来调整窗口大小。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;慢启动&lt;/strong&gt;：每收到 ACK，cwnd 指数增长（1→2→4→8→16&amp;hellip;）&lt;/li&gt;
@@ -22,7 +22,17 @@
 &lt;/ul&gt;
 &lt;p&gt;最优发送窗口 = BtlBw × RTprop（BDP，带宽延迟积）。&lt;/p&gt;
 &lt;h3 id="四个阶段"&gt;四个阶段&lt;/h3&gt;
-&lt;p&gt;BBR 状态机循环：STARTUP → DRAIN → PROBE_BW → PROBE_RTT → &amp;hellip;&lt;/p&gt;</description></item><item><title>tcp 三次握手与四次挥手</title><link>https://hch1212.github.io/posts/2026/01/tcp-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%8E%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%8E%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/</guid><description>&lt;h2 id="三次握手"&gt;三次握手&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;stateDiagram-v2
+ [*] --&amp;gt; STARTUP: 启动
+ STARTUP --&amp;gt; DRAIN: 带宽不再增长
+ DRAIN --&amp;gt; PROBE_BW: 队列排空
+ PROBE_BW --&amp;gt; PROBE_RTT: 需要刷新 RTprop&amp;lt;br/&amp;gt;(每10秒)
+ PROBE_RTT --&amp;gt; PROBE_BW: 完成探测
+ 
+ note right of STARTUP: 指数增长探测 BtlBw
+ note right of PROBE_BW: 稳态: 周期性小幅探速&amp;lt;br/&amp;gt;6个周期为一组
+ note right of PROBE_RTT: 短暂降速刷新最小 RTT
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;BBR 状态机循环：STARTUP → DRAIN → PROBE_BW → PROBE_RTT → &amp;hellip;&lt;/p&gt;</description></item><item><title>tcp 三次握手与四次挥手</title><link>https://hch1212.github.io/posts/2026/01/tcp-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%8E%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/tcp-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%8E%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/</guid><description>&lt;h2 id="三次握手"&gt;三次握手&lt;/h2&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/tcp1.png" alt="img"&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;一次握手:客户端发送带有 SYN（seq=x） 标志的数据包 -&amp;gt; 服务端，然后客户端进入 SYN_SEND 状态，等待服务端的确认；&lt;/li&gt;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据库 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</link><description>Recent content in 数据库 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 07:58:02 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml"/><item><title>W-TinyLFU：Caffeine 的高命中率缓存淘汰算法</title><link>https://hch1212.github.io/posts/2026/07/w-tinylfucaffeine-%E7%9A%84%E9%AB%98%E5%91%BD%E4%B8%AD%E7%8E%87%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AE%97%E6%B3%95/</link><pubDate>Tue, 14 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/w-tinylfucaffeine-%E7%9A%84%E9%AB%98%E5%91%BD%E4%B8%AD%E7%8E%87%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AE%97%E6%B3%95/</guid><description>&lt;h2 id="背景"&gt;背景&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>数据库 on giftiaのblog</title><link>https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</link><description>Recent content in 数据库 on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 17:23:30 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml"/><item><title>W-TinyLFU：Caffeine 的高命中率缓存淘汰算法</title><link>https://hch1212.github.io/posts/2026/07/w-tinylfucaffeine-%E7%9A%84%E9%AB%98%E5%91%BD%E4%B8%AD%E7%8E%87%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AE%97%E6%B3%95/</link><pubDate>Tue, 14 Jul 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/07/w-tinylfucaffeine-%E7%9A%84%E9%AB%98%E5%91%BD%E4%B8%AD%E7%8E%87%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AE%97%E6%B3%95/</guid><description>&lt;h2 id="背景"&gt;背景&lt;/h2&gt;
 &lt;p&gt;缓存淘汰算法决定&lt;strong&gt;当缓存满时该踢谁&lt;/strong&gt;。一个理想的淘汰算法需要同时满足：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;&lt;strong&gt;高命中率&lt;/strong&gt;：尽量保留未来会被访问的数据&lt;/li&gt;
@@ -59,8 +59,8 @@
 &lt;/ul&gt;
 &lt;h2 id="tinylfu"&gt;TinyLFU&lt;/h2&gt;
 &lt;p&gt;TinyLFU 是 W-TinyLFU 的核心组件。它的思想：&lt;strong&gt;用一个轻量级频率估计器替代精确计数&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>布隆过滤器</title><link>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</link><pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/03/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</guid><description>&lt;h2 id="布隆过滤器是什么"&gt;布隆过滤器是什么&lt;/h2&gt;
-&lt;p&gt;在处理海量数据去重或判断“是否存在”时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
-&lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的“误判率”。&lt;/p&gt;
+&lt;p&gt;在处理海量数据去重或判断&amp;quot;是否存在&amp;quot;时，如果使用 Map 或 Set，内存开销会随数据量线性增长。&lt;/p&gt;
+&lt;p&gt;布隆过滤器是一种概率型数据结构。它的核心权衡是：用极小的内存消耗，换取一定的&amp;quot;误判率&amp;quot;。&lt;/p&gt;
 &lt;p&gt;它的回答只有两种可能：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;绝对不在集合中（100% 准确）。&lt;/li&gt;
@@ -68,53 +68,22 @@
 &lt;/ol&gt;
 &lt;h2 id="原理与结构"&gt;原理与结构&lt;/h2&gt;
 &lt;p&gt;布隆过滤器的底层是一个位数组和一组无偏哈希函数。&lt;/p&gt;
-&lt;p&gt;工作流程：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;初始化：所有位（Bit）置为 0。&lt;/li&gt;
-&lt;li&gt;添加元素：
-&lt;ul&gt;
-&lt;li&gt;将元素通过 k 个哈希函数计算，得到 k 个位置。&lt;/li&gt;
-&lt;li&gt;将位数组中对应的这些位置全部置为 1。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;查询元素：
-&lt;ul&gt;
-&lt;li&gt;将待查询元素通过同样的 k 个哈希函数计算。&lt;/li&gt;
-&lt;li&gt;如果所有位置都是 1：认为元素“可能存在”。&lt;/li&gt;
-&lt;li&gt;如果任一位置是 0：认为元素“绝对不存在”。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="应用场景"&gt;应用场景&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;防止缓存穿透：
-在访问数据库前，先通过布隆过滤器判断 Key 是否存在。
-如果不存在直接返回，避免无效请求击穿缓存直达数据库。&lt;/li&gt;
-&lt;li&gt;爬虫 URL 去重：
-存入数亿级 URL，快速判断某个网页是否已经爬取过，节省内存。&lt;/li&gt;
-&lt;li&gt;垃圾邮件过滤：
-从数十亿个垃圾邮件地址中快速匹配。&lt;/li&gt;
-&lt;li&gt;黑名单系统：
-如恶意 IP 过滤、敏感词检查。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="进阶版布隆过滤器的变体"&gt;进阶版：布隆过滤器的变体&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Counting Bloom Filter (可计数布隆过滤器)&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;解决问题：不支持删除。&lt;/li&gt;
-&lt;li&gt;原理：将位数组的每个 Bit 换成一个 Counter (计数器)。&lt;/li&gt;
-&lt;li&gt;操作：添加时 +1，删除时 -1。虽然增加了空间占用，但支持了动态删除。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Cuckoo Filter (布谷鸟过滤器)&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;优势：支持动态删除，且在误判率较低时，查询性能优于布隆过滤器，空间利用率更高。&lt;/li&gt;
-&lt;li&gt;原理：基于布谷鸟哈希算法，通过指纹（Fingerprint）存储元素特征。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</description></item><item><title>acid 脏读、幻读、不可重复读 事务隔离级别</title><link>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</guid><description>&lt;h2 id="acid"&gt;ACID&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ subgraph 添加[&amp;#34;添加元素 x&amp;#34;]
+ A[&amp;#34;元素 x&amp;#34;] --&amp;gt; H1[&amp;#34;Hash1 → 位置 3&amp;#34;] &amp;amp; H2[&amp;#34;Hash2 → 位置 5&amp;#34;] &amp;amp; H3[&amp;#34;Hash3 → 位置 8&amp;#34;]
+ H1 --&amp;gt; B1[&amp;#34;Bit[3] = 1&amp;#34;]
+ H2 --&amp;gt; B2[&amp;#34;Bit[5] = 1&amp;#34;]
+ H3 --&amp;gt; B3[&amp;#34;Bit[8] = 1&amp;#34;]
+ end
+
+ subgraph 查询[&amp;#34;查询元素 y (y ≠ x)&amp;#34;]
+ Q[&amp;#34;元素 y&amp;#34;] --&amp;gt; QH1[&amp;#34;Hash1 → 位置 1&amp;#34;] &amp;amp; QH2[&amp;#34;Hash2 → 位置 5&amp;#34;] &amp;amp; QH3[&amp;#34;Hash3 → 位置 8&amp;#34;]
+ QH1 --&amp;gt; R1[&amp;#34;Bit[1] = 0 ⚠️&amp;#34;]
+ QH2 --&amp;gt; R2[&amp;#34;Bit[5] = 1&amp;#34;]
+ QH3 --&amp;gt; R3[&amp;#34;Bit[8] = 1&amp;#34;]
+ R1 --&amp;gt; RESULT[&amp;#34;任一为 0 → 绝对不存在&amp;#34;]
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;工作流程：&lt;/p&gt;</description></item><item><title>acid 脏读、幻读、不可重复读 事务隔离级别</title><link>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/acid-%E8%84%8F%E8%AF%BB%E5%B9%BB%E8%AF%BB%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</guid><description>&lt;h2 id="acid"&gt;ACID&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;原子性（Atomicity）&lt;/strong&gt;：事务不可分割，操作要么全部成功，要么全部失败&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;一致性（Consistency）&lt;/strong&gt;：事务前后数据库保持一致状态&lt;/li&gt;
@@ -567,7 +536,24 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>redis 中的惊群效应</title><link>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%AD%E7%9A%84%E6%83%8A%E7%BE%A4%E6%95%88%E5%BA%94/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%AD%E7%9A%84%E6%83%8A%E7%BE%A4%E6%95%88%E5%BA%94/</guid><description>&lt;h2 id="什么是惊群效应"&gt;什么是惊群效应&lt;/h2&gt;
 &lt;p&gt;惊群效应是指在多线程/多进程环境中，当多个进程/线程同时等待同一个资源（如Redis中的某个键）时，一旦该资源可用（如键被设置或过期），所有等待者都被唤醒，但最终只有一个能成功获取资源，其他进程/线程必须重新进入等待状态，造成系统资源的浪费。&lt;/p&gt;
-&lt;h2 id="redis中的惊群场景"&gt;Redis中的惊群场景&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;sequenceDiagram
+ participant C1 as 客户端1
+ participant C2 as 客户端2
+ participant C3 as 客户端3
+ participant R as Redis
+ participant DB as 数据库
+
+ Note over C1,DB: 缓存过期，惊群发生
+ C1-&amp;gt;&amp;gt;R: GET hot-key → nil (过期)
+ C2-&amp;gt;&amp;gt;R: GET hot-key → nil (过期)
+ C3-&amp;gt;&amp;gt;R: GET hot-key → nil (过期)
+ 
+ C1-&amp;gt;&amp;gt;DB: 查询数据
+ C2-&amp;gt;&amp;gt;DB: 查询数据
+ C3-&amp;gt;&amp;gt;DB: 查询数据
+ 
+ Note over DB: 数据库收到 3 次重复查询
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="redis中的惊群场景"&gt;Redis中的惊群场景&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;&lt;strong&gt;键过期通知&lt;/strong&gt;：当某个键过期时，多个客户端可能都在等待这个事件&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;发布/订阅&lt;/strong&gt;：多个订阅者同时接收相同的消息&lt;/li&gt;
@@ -589,13 +575,7 @@
 &lt;li&gt;&lt;strong&gt;合理设置超时&lt;/strong&gt;：避免大量客户端同时重试&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h2 id="实际案例"&gt;实际案例&lt;/h2&gt;
-&lt;p&gt;在分布式锁场景中，如果多个客户端同时等待锁释放，当锁释放时会出现惊群效应。解决方案可以是：&lt;/p&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;// 伪代码
-while(!acquireLock()){
- wait = randomBackoff();
- sleep(wait);
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;通过随机退避算法，可以减少客户端同时重试的概率。&lt;/p&gt;</description></item><item><title>redis 主从、哨兵、集群</title><link>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</guid><description>&lt;h2 id="主从模式"&gt;主从模式&lt;/h2&gt;
+&lt;p&gt;在分布式锁场景中，如果多个客户端同时等待锁释放，当锁释放时会出现惊群效应。解决方案可以是：&lt;/p&gt;</description></item><item><title>redis 主从、哨兵、集群</title><link>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis-%E4%B8%BB%E4%BB%8E%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/</guid><description>&lt;h2 id="主从模式"&gt;主从模式&lt;/h2&gt;
 &lt;p&gt;&lt;img src="https://hch1212.github.io/other/redis1.png" alt="img"&gt;&lt;/p&gt;
 &lt;h3 id="主从模式优点"&gt;主从模式优点&lt;/h3&gt;
 &lt;ul&gt;
@@ -790,7 +770,15 @@ while(!acquireLock()){
 &lt;li&gt;对于查询的存在id，放到布隆过滤器中，白名单，通过。&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>redis数据持久化</title><link>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/redis%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid><description>&lt;h2 id="rdb-持久化"&gt;RDB 持久化&lt;/h2&gt;
 &lt;p&gt;RDB 是 Redis 默认的持久化方式，它是一种快照（snapshot）持久化。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ P[&amp;#34;Redis 父进程&amp;lt;br/&amp;gt;接收 BGSAVE 命令&amp;#34;] --&amp;gt;|fork| C[&amp;#34;子进程&amp;#34;]
+ P --&amp;gt;|&amp;#34;继续处理请求&amp;lt;br/&amp;gt;(写时复制 COW)&amp;#34;| P2[&amp;#34;修改数据时&amp;lt;br/&amp;gt;OS 自动复制数据页&amp;#34;]
+ 
+ C --&amp;gt;|&amp;#34;共享父进程&amp;lt;br/&amp;gt;内存快照&amp;#34;| C2[&amp;#34;遍历内存数据&amp;#34;]
+ C2 --&amp;gt;|写入| T[&amp;#34;临时 RDB 文件&amp;#34;]
+ T --&amp;gt;|原子 rename| D[&amp;#34;dump.rdb&amp;#34;]
+ D --&amp;gt;|通知| P
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;RDB 会在指定的时间间隔内，将 Redis 在内存中的所有数据以二进制文件的形式写入硬盘。这个文件通常命名为 &lt;code&gt;dump.rdb&lt;/code&gt;。整个过程可以理解为对 Redis 内存数据做了一次全量备份。&lt;/li&gt;
 &lt;/ul&gt;
@@ -807,18 +795,7 @@ while(!acquireLock()){
 &lt;li&gt;对父进程影响小：持久化由子进程完成，父进程几乎不阻塞，可以继续响应请求。&lt;/li&gt;
 &lt;li&gt;适合备份：RDB 文件是一个单一的紧凑文件，非常适合进行异地备份。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;可能丢失数据：RDB 是定时快照，如果在两次快照之间 Redis 宕机，这期间的数据就会丢失。例如，你配置每 5 分钟做一次快照，如果 Redis 在第 4 分钟宕机，你将丢失这 4 分钟的所有数据。&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;fork()&lt;/code&gt; 性能问题：当数据量巨大时，&lt;code&gt;fork()&lt;/code&gt; 子进程需要消耗一定的时间，可能导致短暂的阻塞。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="aof-持久化"&gt;AOF 持久化&lt;/h2&gt;
-&lt;p&gt;AOF 是一种增量式的持久化方式。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;核心原理：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;AOF 机制会将 Redis 执行的每一条写命令（例如 &lt;code&gt;SET&lt;/code&gt;, &lt;code&gt;INCR&lt;/code&gt;）都以纯文本的形式记录到一个文件中，文件通常命名为 &lt;code&gt;appendonly.aof&lt;/code&gt;。当 Redis 重启时，它会重新执行这个文件中的所有写命令来恢复数据。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;工作流程：&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>事务隔离级别的实现原理</title><link>https://hch1212.github.io/posts/2026/01/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid><description>&lt;p&gt;MySQL 的 InnoDB 存储引擎主要通过两种核心机制来实现事务隔离：MVCC（多版本并发控制） 和 锁（Locking）。这两者相互配合，在隔离性与性能之间取得了完美平衡。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>事务隔离级别的实现原理</title><link>https://hch1212.github.io/posts/2026/01/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid><description>&lt;p&gt;MySQL 的 InnoDB 存储引擎主要通过两种核心机制来实现事务隔离：MVCC（多版本并发控制） 和 锁（Locking）。这两者相互配合，在隔离性与性能之间取得了完美平衡。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;READ UNCOMMITTED：不使用 MVCC，也不使用锁。（写操作仍然会加排他锁）&lt;/li&gt;
 &lt;li&gt;READ COMMITTED：使用 MVCC，但每次读都生成新视图。&lt;/li&gt;
@@ -827,27 +804,58 @@ while(!acquireLock()){
 &lt;/ul&gt;
 &lt;h2 id="mvcc"&gt;MVCC&lt;/h2&gt;
 &lt;p&gt;MVCC 是 InnoDB 实现 READ COMMITTED 和 REPEATABLE READ 的核心。它的基本思想是：不通过加锁来阻塞读操作，而是通过保存数据行的多个版本，让读和写可以并发进行。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;实现原理：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;隐藏列：InnoDB 的每行数据都包含几个隐藏列，其中最重要的是 DB_TRX_ID（记录最近一次修改该行的事务ID）和 DB_ROLL_PTR（回滚指针，指向上一版本的记录）。这些指针将不同版本的数据串成一个版本链。&lt;/li&gt;
-&lt;li&gt;Read View (读视图)：当一个事务执行快照读（即普通的 SELECT 语句）时，InnoDB 会为它创建一个 Read View。这个视图记录了当前活跃（未提交）的事务 ID 列表。&lt;/li&gt;
-&lt;li&gt;可见性判断：事务在读取数据时，会根据这个 Read View，沿着版本链从新到旧地遍历，直到找到一个对当前事务可见的版本。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;MVCC 在不同隔离级别下的应用：&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;READ COMMITTED：每次执行 SELECT 语句时，都会重新生成一个 Read View。因此，它能够读取到最新已提交的数据，但会导致不可重复读。&lt;/li&gt;
-&lt;li&gt;REPEATABLE READ：只在事务第一次执行 SELECT 时生成一个 Read View，并将其固定下来。后续的 SELECT 都使用这个固定的视图。这是它解决不可重复读的关键所在。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="锁"&gt;锁&lt;/h2&gt;
-&lt;p&gt;锁机制主要用于处理并发事务对同一数据的写操作，以保证数据的一致性。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;共享锁（S锁）：允许多个事务同时持有，但会阻止其他事务获得排他锁。&lt;/li&gt;
-&lt;li&gt;排他锁（X锁）：一次只能被一个事务持有，会阻塞其他事务的读写操作。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;锁机制在不同隔离级别下的应用：&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>什么是RedLock</title><link>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</guid><description>&lt;h2 id="什么是-redlock"&gt;什么是 RedLock&lt;/h2&gt;
+&lt;h3 id="版本链与可见性判断"&gt;版本链与可见性判断&lt;/h3&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ subgraph 版本链[&amp;#34;同一行的版本链 (DB_ROLL_PTR 串联)&amp;#34;]
+ direction LR
+ V3[&amp;#34;V3: trx_id=300&amp;lt;br/&amp;gt;value=B&amp;lt;br/&amp;gt;(最新)&amp;#34;] --&amp;gt; V2[&amp;#34;V2: trx_id=200&amp;lt;br/&amp;gt;value=A&amp;#34;] --&amp;gt; V1[&amp;#34;V1: trx_id=100&amp;lt;br/&amp;gt;value=NULL&amp;lt;br/&amp;gt;(最老)&amp;#34;]
+ end
+ 
+ 版本链 --&amp;gt; 判断{Read View 可见性判断&amp;lt;br/&amp;gt;从新到旧遍历版本链}
+ 
+ subgraph ReadView[&amp;#34;当前 Read View&amp;#34;]
+ RV[&amp;#34;活跃事务: [300]&amp;lt;br/&amp;gt;事务 300 未提交，不可见&amp;#34;]
+ end
+ 
+ ReadView --&amp;gt; 判断
+ 判断 --&amp;gt;|trx_id=300 在活跃列表中| 跳过V3[&amp;#34;跳过 V3&amp;#34;]
+ 跳过V3 --&amp;gt;|trx_id=200 已提交| 结果[&amp;#34;读到 V2: value=A&amp;#34;]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;事务拿着 Read View 沿版本链从新到旧遍历：V3 的 &lt;code&gt;trx_id=300&lt;/code&gt; 仍在活跃列表中，跳过；V2 的 &lt;code&gt;trx_id=200&lt;/code&gt; 小于最小活跃 ID，已提交，&lt;strong&gt;可见&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>什么是RedLock</title><link>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/%E4%BB%80%E4%B9%88%E6%98%AFredlock/</guid><description>&lt;h2 id="什么是-redlock"&gt;什么是 RedLock&lt;/h2&gt;
 &lt;p&gt;RedLock 是 Redis 作者 Antirez 提出的分布式锁算法，使用多个独立 Redis 实例避免单点故障。&lt;/p&gt;
 &lt;h2 id="算法流程"&gt;算法流程&lt;/h2&gt;
-&lt;ol&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;sequenceDiagram
+ participant C as 客户端
+ participant R1 as Redis-1
+ participant R2 as Redis-2
+ participant R3 as Redis-3
+ participant R4 as Redis-4
+ participant R5 as Redis-5
+
+ Note over C,R5: 加锁阶段
+ par 并行请求
+ C-&amp;gt;&amp;gt;R1: SET lock uuid NX PX 10000
+ R1--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R2: SET lock uuid NX PX 10000
+ R2--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R3: SET lock uuid NX PX 10000
+ R3--&amp;gt;&amp;gt;C: OK
+ and
+ C-&amp;gt;&amp;gt;R4: SET lock uuid NX PX 10000
+ R4--&amp;gt;&amp;gt;X: 超时
+ and
+ C-&amp;gt;&amp;gt;R5: SET lock uuid NX PX 10000
+ R5--&amp;gt;&amp;gt;C: OK
+ end
+ Note over C: 4/5 ≥ 3 (N/2+1) → 加锁成功&amp;lt;br/&amp;gt;有效时间 = 10s - 获取耗时
+
+ Note over C,R5: 释放阶段
+ C-&amp;gt;&amp;gt;R1: DEL lock (Lua 校验 uuid)
+ C-&amp;gt;&amp;gt;R2: DEL lock
+ C-&amp;gt;&amp;gt;R3: DEL lock
+ C-&amp;gt;&amp;gt;R5: DEL lock
+&lt;/code&gt;&lt;/pre&gt;&lt;ol&gt;
 &lt;li&gt;客户端向 N 个 Redis 实例（建议 N=5）尝试获取锁，生成随机锁 ID 并使用 &lt;code&gt;SET key value NX PX timeout&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;设定锁过期时间，防止死锁&lt;/li&gt;
 &lt;li&gt;在大多数实例（N/2+1）上成功获取锁，才算获取成功&lt;/li&gt;

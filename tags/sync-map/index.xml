@@ -1,35 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Sync-Map on giftiaのblog</title><link>https://hch1212.github.io/tags/sync-map/</link><description>Recent content in Sync-Map on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 11:46:36 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/tags/sync-map/index.xml" rel="self" type="application/rss+xml"/><item><title>sync.map</title><link>https://hch1212.github.io/posts/2026/01/sync.map/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/sync.map/</guid><description>&lt;h2 id="核心原理"&gt;核心原理&lt;/h2&gt;
-&lt;p&gt;sync.Map 适用于&lt;strong&gt;读多写少&lt;/strong&gt;场景，通过读写分离提升性能：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;读写分离&lt;/strong&gt;：内部维护只读字典（read）和读写字典（dirty）。读操作优先访问 read，miss 时才查 dirty。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;延迟写入&lt;/strong&gt;：写操作只更新 dirty，不立即同步到 read。只有 misses 计数器超阈值时才将 dirty 同步到 read。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;原子操作&lt;/strong&gt;：读操作大部分无锁（&lt;code&gt;atomic.Value&lt;/code&gt;），写操作用 &lt;code&gt;sync.Mutex&lt;/code&gt; 保护。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="vs-手动加锁-map"&gt;vs 手动加锁 map&lt;/h2&gt;
-&lt;table&gt;
- &lt;thead&gt;
- &lt;tr&gt;
- &lt;th&gt;维度&lt;/th&gt;
- &lt;th&gt;sync.Map&lt;/th&gt;
- &lt;th&gt;手动加锁 map&lt;/th&gt;
- &lt;/tr&gt;
- &lt;/thead&gt;
- &lt;tbody&gt;
- &lt;tr&gt;
- &lt;td&gt;并发性能&lt;/td&gt;
- &lt;td&gt;读操作无锁，写操作延迟同步&lt;/td&gt;
- &lt;td&gt;读写互斥，高并发下性能差&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;适用场景&lt;/td&gt;
- &lt;td&gt;读多写少&lt;/td&gt;
- &lt;td&gt;读写均衡&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;实现复杂度&lt;/td&gt;
- &lt;td&gt;内置封装&lt;/td&gt;
- &lt;td&gt;自行管理锁&lt;/td&gt;
- &lt;/tr&gt;
- &lt;/tbody&gt;
-&lt;/table&gt;
-&lt;p&gt;&lt;strong&gt;结论&lt;/strong&gt;：读多写少场景用 sync.Map；简单场景手动加锁完全够用。&lt;/p&gt;</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Sync-Map on giftiaのblog</title><link>https://hch1212.github.io/tags/sync-map/</link><description>Recent content in Sync-Map on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 15 Jul 2026 17:23:30 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/tags/sync-map/index.xml" rel="self" type="application/rss+xml"/><item><title>sync.map</title><link>https://hch1212.github.io/posts/2026/01/sync.map/</link><pubDate>Mon, 05 Jan 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/01/sync.map/</guid><description>&lt;h2 id="核心原理"&gt;核心原理&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-mermaid" data-lang="mermaid"&gt;flowchart TB
+ subgraph 读路径[&amp;#34;读路径 (Load)&amp;#34;]
+ R1[读请求] --&amp;gt; R2{read 命中?}
+ R2 --&amp;gt;|是| R3[&amp;#34;返回 value (无锁)&amp;#34;]
+ R2 --&amp;gt;|否| R4[&amp;#34;查找 dirty (加锁)&amp;lt;br/&amp;gt;miss++&amp;#34;]
+ R4 --&amp;gt; R5{miss 次数 ≥ dirty 长度?}
+ R5 --&amp;gt;|是| R6[&amp;#34;dirty 晋升为 read&amp;lt;br/&amp;gt;原 dirty 置 nil (O(1) 指针替换)&amp;#34;]
+ end
+ 
+ subgraph 写路径[&amp;#34;写路径 (Store/Delete, 均加锁)&amp;#34;]
+ W1[Store] --&amp;gt; W2{read 中有此 key?}
+ W2 --&amp;gt;|是| W3[&amp;#34;更新 read (atomic)&amp;#34;]
+ W2 --&amp;gt;|否| W4{dirty 为 nil?}
+ W4 --&amp;gt;|是| W5[&amp;#34;遍历 read, 拷贝有效条目到 dirty&amp;#34;]
+ W4 --&amp;gt;|否| W6[&amp;#34;直接写入 dirty&amp;#34;]
+ W5 --&amp;gt; W6
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;sync.Map 适用于&lt;strong&gt;读多写少&lt;/strong&gt;场景，通过读写分离提升性能：&lt;/p&gt;</description></item></channel></rss>
