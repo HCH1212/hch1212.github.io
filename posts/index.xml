@@ -1,4 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on giftiaのblog</title><link>https://hch1212.github.io/posts/</link><description>Recent content in Posts on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sat, 08 Aug 2026 13:37:01 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>分布式ID</title><link>https://hch1212.github.io/posts/2026/08/%E5%88%86%E5%B8%83%E5%BC%8Fid/</link><pubDate>Mon, 03 Aug 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/08/%E5%88%86%E5%B8%83%E5%BC%8Fid/</guid><description>&lt;h2 id="一句话定义"&gt;一句话定义&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on giftiaのblog</title><link>https://hch1212.github.io/posts/</link><description>Recent content in Posts on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 10 Aug 2026 09:00:27 +0000</lastBuildDate><atom:link href="https://hch1212.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>数据分页：为什么必须 ORDER BY id</title><link>https://hch1212.github.io/posts/2026/08/%E6%95%B0%E6%8D%AE%E5%88%86%E9%A1%B5%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB-order-by-id/</link><pubDate>Mon, 10 Aug 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/08/%E6%95%B0%E6%8D%AE%E5%88%86%E9%A1%B5%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB-order-by-id/</guid><description>&lt;h2 id="一为什么要排序"&gt;一、为什么要排序&lt;/h2&gt;
+&lt;p&gt;SQL 标准不保证 &lt;code&gt;SELECT * FROM t&lt;/code&gt; 的返回顺序。不排序的分页是不可靠的。&lt;/p&gt;
+&lt;p&gt;两次分页请求之间若发生 UPDATE 触发页面重组，物理存储顺序可能改变：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;请求 page=1：LIMIT 10 OFFSET 0 → [A,B,C,D,E,F,G,H,I,J]
+请求 page=2：LIMIT 10 OFFSET 10 → [C,D,K,L,M,N,O,P,Q,R]
+结果：C、D 重复出现，A、B 永远丢失。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;ORDER BY&lt;/code&gt; 的本质是&lt;strong&gt;给每行一个在全量数据中固定的位次&lt;/strong&gt;。有了固定位次，OFFSET 才能精确定位到&amp;quot;第 11～20 行&amp;quot;，不受增删改影响。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="二为什么用-id"&gt;二、为什么用 id&lt;/h2&gt;
+&lt;h3 id="单调递增新增不影响已有分页"&gt;单调递增，新增不影响已有分页&lt;/h3&gt;
+&lt;p&gt;id 自增，新数据追加到末尾，不会挤占已翻过的页。而递增的 &lt;code&gt;ORDER BY id ASC&lt;/code&gt;，新数据永远在最后一页之后。&lt;/p&gt;
+&lt;h3 id="值唯一排序无歧义"&gt;值唯一，排序无歧义&lt;/h3&gt;
+&lt;p&gt;若排序字段可能重复（如 &lt;code&gt;created_at&lt;/code&gt;），两行并列时先后顺序不确定，可能某行出现在两页。id 天然唯一，没有这个问题。&lt;/p&gt;
+&lt;p&gt;需要业务字段排序时，用 id 兜底：&lt;code&gt;ORDER BY created_at, id&lt;/code&gt;。&lt;/p&gt;
+&lt;h3 id="自带聚簇索引排序零开销"&gt;自带聚簇索引，排序零开销&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;ORDER BY id&lt;/code&gt; 直接走主键索引顺序扫描，不需要额外排序。而 &lt;code&gt;ORDER BY name&lt;/code&gt; 需要建索引 + 回表。&lt;/p&gt;
+&lt;h3 id="不可变"&gt;不可变&lt;/h3&gt;
+&lt;p&gt;id 写入后永不改变。而 &lt;code&gt;ORDER BY updated_at&lt;/code&gt; 每次更新顺序就变，分页直接乱套。&lt;/p&gt;</description></item><item><title>分布式ID</title><link>https://hch1212.github.io/posts/2026/08/%E5%88%86%E5%B8%83%E5%BC%8Fid/</link><pubDate>Mon, 03 Aug 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/08/%E5%88%86%E5%B8%83%E5%BC%8Fid/</guid><description>&lt;h2 id="一句话定义"&gt;一句话定义&lt;/h2&gt;
 &lt;p&gt;&lt;strong&gt;分布式 ID&lt;/strong&gt; 就是在分库分表、微服务这些场景下，各节点不靠单库自增，自己生成&lt;strong&gt;全局唯一、趋势递增&lt;/strong&gt;的 ID。&lt;/p&gt;
 &lt;hr&gt;
 &lt;h2 id="为什么需要它"&gt;为什么需要它&lt;/h2&gt;
