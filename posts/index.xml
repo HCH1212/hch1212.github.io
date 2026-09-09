@@ -3,6 +3,11 @@
 &lt;li&gt;进程：资源分配的基本单位，比如启动一个程序&lt;/li&gt;
 &lt;li&gt;线程：cpu 调度的基本单位，内核态&lt;/li&gt;
 &lt;li&gt;协程：用户态的轻量级线程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="make-和-new-的区别"&gt;make 和 new 的区别&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;new 初始化任意数据类型并返回指针&lt;/li&gt;
+&lt;li&gt;make 初始化 slice/channel/map，返回可用的数据结构本身&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Mysql合集</title><link>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</link><pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="redolog-undolog-binlog"&gt;redolog undolog binlog&lt;/h2&gt;</description></item><item><title>Redis合集</title><link>https://hch1212.github.io/posts/2026/09/redis%E5%90%88%E9%9B%86/</link><pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/redis%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="持久化策略"&gt;持久化策略&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;RDB：快照备份，二进制，占用小恢复快，数据缺口大&lt;/li&gt;
