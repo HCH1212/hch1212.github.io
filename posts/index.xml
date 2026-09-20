@@ -60,7 +60,7 @@
 &lt;li&gt;空间换时间，读写分离&lt;/li&gt;
 &lt;li&gt;读：先读 read map，没有就加锁读 dirty map&lt;/li&gt;
 &lt;li&gt;写：key 已存在就直接写 read map，新 key 就加锁写 dirty map&lt;/li&gt;
-&lt;li&gt;同步：read map 未命中达到一定次数后，dirty 升级为 read，然后等下一次写入时再 copy 一个 dirty&lt;/li&gt;
+&lt;li&gt;同步：read map 未命中次数 &amp;gt;= len(dirty) 时，dirty 升级为 read，然后等下一次写入时再 copy 一个 dirty&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Mysql合集</title><link>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</link><pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="数据库三范式"&gt;数据库三范式&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;第一范式：每列的原子性，每列字段不应该是可再分的&lt;/li&gt;
