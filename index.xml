@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 14 Sep 2026 15:04:34 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent合集</title><link>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</link><pubDate>Mon, 14 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="如何设计一个-agent"&gt;如何设计一个 agent&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 14 Oct 2026 21:59:14 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent合集</title><link>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</link><pubDate>Mon, 14 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="如何设计一个-agent"&gt;如何设计一个 agent&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;决策核心：ReAct / Plan-and-Execute&lt;/li&gt;
 &lt;li&gt;知识：RAG&lt;/li&gt;
@@ -61,7 +61,18 @@
 &lt;li&gt;读：先读 read map，没有就加锁读 dirty map&lt;/li&gt;
 &lt;li&gt;写：key 已存在就直接写 read map，新 key 就加锁写 dirty map&lt;/li&gt;
 &lt;li&gt;同步：read map 未命中次数 &amp;gt;= len(dirty) 时，dirty 升级为 read，然后等下一次写入时再 copy 一个 dirty&lt;/li&gt;
-&lt;/ul&gt;</description></item><item><title>Mysql合集</title><link>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</link><pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="数据库三范式"&gt;数据库三范式&lt;/h2&gt;
+&lt;/ul&gt;
+&lt;h2 id="线程池非go"&gt;线程池（非go）&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;最大线程数&lt;/li&gt;
+&lt;li&gt;核心线程数：默认懒创建、默认常驻不回收&lt;/li&gt;
+&lt;li&gt;空闲存活时间：非核心线程空闲超时被回收，回收下限为核心线程数&lt;/li&gt;
+&lt;li&gt;工作队列&lt;/li&gt;
+&lt;li&gt;线程工厂&lt;/li&gt;
+&lt;li&gt;拒绝策略：报错/静默丢弃/调用者线程运行/丢弃队列最老任务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="协程池"&gt;协程池&lt;/h2&gt;
+&lt;p&gt;协程池的核心目的不是“复用资源”，而是“限制不可控的并发量”&lt;/p&gt;</description></item><item><title>Mysql合集</title><link>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</link><pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/mysql%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="数据库三范式"&gt;数据库三范式&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;第一范式：每列的原子性，每列字段不应该是可再分的&lt;/li&gt;
 &lt;li&gt;第二范式：1基础上，所有非主键依赖主键的全部字段（联合主键）&lt;/li&gt;
@@ -7210,6 +7221,7 @@ git fetch origin # 从远程获取最新代码
 &lt;li&gt;想要成为影之实力者&lt;/li&gt;
 &lt;li&gt;School Days&lt;/li&gt;
 &lt;li&gt;夏日重现&lt;/li&gt;
+&lt;li&gt;虫师&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/details&gt;
