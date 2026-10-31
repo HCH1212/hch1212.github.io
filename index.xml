@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sun, 25 Oct 2026 17:20:09 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent合集</title><link>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</link><pubDate>Mon, 14 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="如何设计一个-agent"&gt;如何设计一个 agent&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>giftiaのblog</title><link>https://hch1212.github.io/</link><description>Recent content on giftiaのblog</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sat, 31 Oct 2026 21:21:12 +0800</lastBuildDate><atom:link href="https://hch1212.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent合集</title><link>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</link><pubDate>Mon, 14 Sep 2026 00:00:00 +0000</pubDate><guid>https://hch1212.github.io/posts/2026/09/agent%E5%90%88%E9%9B%86/</guid><description>&lt;h2 id="如何设计一个-agent"&gt;如何设计一个 agent&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;决策核心：ReAct / Plan-and-Execute&lt;/li&gt;
 &lt;li&gt;知识：RAG&lt;/li&gt;
@@ -7223,6 +7223,7 @@ git fetch origin # 从远程获取最新代码
 &lt;li&gt;夏日重现&lt;/li&gt;
 &lt;li&gt;虫师&lt;/li&gt;
 &lt;li&gt;绝对双刃&lt;/li&gt;
+&lt;li&gt;辉夜大小姐想让我告白&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/details&gt;
